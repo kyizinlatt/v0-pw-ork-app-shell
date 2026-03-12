@@ -19,64 +19,64 @@ export const STATUS_CONFIG = {
   RECEIVE: {
     label: "Received",
     description: "Case received from customer, pending initial review",
-    dot: "bg-slate-400",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    dot: "bg-slate-500",
+    badge: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700",
     owner: "PWIN",
   },
   CHECKING: {
     label: "Checking",
     description: "PWIN reviewing documents and preparing for submission",
-    dot: "bg-blue-400",
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+    dot: "bg-blue-500",
+    badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
     owner: "PWIN",
   },
   SUBMITTED: {
     label: "Sent to Partner",
     description: "Case sent to Partner, awaiting Partner assignment",
-    dot: "bg-indigo-400",
-    badge: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300",
+    dot: "bg-indigo-500",
+    badge: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800",
     owner: "PWIN",
   },
   WORKING: {
     label: "Partner Working",
     description: "Partner is processing with Government/Embassy",
-    dot: "bg-orange-400",
-    badge: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+    dot: "bg-orange-500",
+    badge: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
     owner: "PARTNER",
   },
   DONE: {
     label: "Partner Complete",
     description: "Partner completed work, pending PWIN review",
-    dot: "bg-teal-400",
-    badge: "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
+    dot: "bg-teal-500",
+    badge: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800",
     owner: "PWIN",
   },
   PUBLISH: {
     label: "Published",
     description: "Results published to customer tracking page",
-    dot: "bg-purple-400",
-    badge: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+    dot: "bg-violet-500",
+    badge: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800",
     owner: "PWIN",
   },
   AWAITING_PICKUP: {
     label: "Awaiting Pickup",
     description: "Customer can request final documents",
-    dot: "bg-amber-400",
-    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
+    dot: "bg-amber-500",
+    badge: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
     owner: "PWIN",
   },
   DELIVERY: {
     label: "Delivery",
     description: "Documents being delivered to customer",
-    dot: "bg-cyan-400",
-    badge: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
+    dot: "bg-cyan-500",
+    badge: "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950 dark:text-cyan-300 dark:border-cyan-800",
     owner: "PWIN",
   },
   CLOSED: {
     label: "Closed",
     description: "Case completed and closed",
-    dot: "bg-green-400",
-    badge: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+    dot: "bg-green-500",
+    badge: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
     owner: "SYSTEM",
   },
 } as const
@@ -193,29 +193,32 @@ interface StatusBadgeProps {
   status: CaseStatus
   size?: "xs" | "sm" | "md"
   showOwner?: boolean
+  showDot?: boolean
 }
 
-export function StatusBadge({ status, size = "sm", showOwner = false }: StatusBadgeProps) {
+export function StatusBadge({ status, size = "sm", showOwner = false, showDot = true }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status]
   const sizeClasses = {
     xs: "text-[10px] px-1.5 py-0.5 rounded",
-    sm: "text-xs px-2 py-0.5 rounded-md",
-    md: "text-sm px-2.5 py-1 rounded-md",
+    sm: "text-xs px-2 py-1 rounded",
+    md: "text-sm px-2.5 py-1 rounded",
   }
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 font-medium",
+        "inline-flex items-center gap-1.5 font-medium border",
         sizeClasses[size],
         config.badge
       )}
       title={config.description}
     >
-      <span className={cn("size-1.5 rounded-full flex-shrink-0", config.dot)} />
+      {showDot && (
+        <span className={cn("size-1.5 rounded-full flex-shrink-0", config.dot)} />
+      )}
       {config.label}
       {showOwner && (
-        <span className="text-[9px] opacity-70 ml-0.5">({config.owner})</span>
+        <span className="text-[9px] opacity-60 ml-1">({config.owner})</span>
       )}
     </span>
   )

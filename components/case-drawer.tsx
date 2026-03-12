@@ -418,14 +418,16 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               highlight
             >
               {availableTransitions.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-2">
                     {availableTransitions.map((transition) => (
                       <Button
                         key={transition.toStatus}
                         onClick={() => handleTransitionClick(transition)}
+                        size="sm"
                         className={cn(
-                          transition.variant === "primary" && "bg-indigo-600 hover:bg-indigo-700 text-white",
+                          "font-medium",
+                          transition.variant === "primary" && "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
                           transition.variant === "destructive" && "bg-red-600 hover:bg-red-700 text-white"
                         )}
                         variant={transition.variant === "secondary" ? "outline" : "default"}
@@ -434,9 +436,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                       </Button>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Current owner: <span className="font-medium">{caseData.status === "WORKING" ? "Partner" : "PWIN"}</span>
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <span>Current owner: <span className="font-medium text-foreground">{caseData.status === "WORKING" ? "Partner" : "PWIN"}</span></span>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No actions available for your role.</p>

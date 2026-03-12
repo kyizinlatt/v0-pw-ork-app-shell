@@ -123,17 +123,9 @@ const allCases = [
 
 // Status tabs with flow-aware grouping
 const statusTabs: { label: string; value: CaseStatus | "ALL" | "PWIN_QUEUE" | "PARTNER_QUEUE"; count?: number; description?: string }[] = [
-  { label: "All", value: "ALL", count: 8 },
+  { label: "All Cases", value: "ALL", count: 8 },
   { label: "PWIN Queue", value: "PWIN_QUEUE", count: 4, description: "Cases requiring PWIN action" },
   { label: "Partner Queue", value: "PARTNER_QUEUE", count: 2, description: "Cases with Partner" },
-  { label: "Received", value: "RECEIVE", count: 1 },
-  { label: "Checking", value: "CHECKING", count: 1 },
-  { label: "Sent to Partner", value: "SUBMITTED", count: 1 },
-  { label: "Partner Working", value: "WORKING", count: 1 },
-  { label: "Partner Complete", value: "DONE", count: 1 },
-  { label: "Published", value: "PUBLISH", count: 1 },
-  { label: "Awaiting", value: "AWAITING_PICKUP", count: 1 },
-  { label: "Closed", value: "CLOSED", count: 1 },
 ]
 
 const columns = [
@@ -210,30 +202,29 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
         {/* Filter bar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           {/* Status tabs */}
-          <div className="flex items-center gap-1 bg-muted rounded-lg p-1 overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1 border border-border rounded-lg p-1 bg-muted/30">
             {statusTabs.map((tab) => (
               <Tooltip key={tab.value}>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => handleTabChange(tab.value)}
                     className={cn(
-                      "px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5",
+                      "px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-all flex items-center gap-2",
                       activeTab === tab.value
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                      (tab.value === "PWIN_QUEUE" || tab.value === "PARTNER_QUEUE") && "border-l border-border ml-1 pl-3"
+                        ? "bg-background text-foreground shadow-sm border border-border"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                   >
-                    {tab.value === "PWIN_QUEUE" && <Building2 className="size-3" />}
-                    {tab.value === "PARTNER_QUEUE" && <Users className="size-3" />}
+                    {tab.value === "PWIN_QUEUE" && <Building2 className="size-4" />}
+                    {tab.value === "PARTNER_QUEUE" && <Users className="size-4" />}
                     {tab.label}
                     {tab.count !== undefined && (
                       <span
                         className={cn(
-                          "text-[10px] px-1.5 py-0.5 rounded-full",
+                          "text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
                           activeTab === tab.value
-                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
-                            : "bg-muted-foreground/20"
+                            ? "bg-indigo-600 text-white"
+                            : "bg-muted text-muted-foreground"
                         )}
                       >
                         {tab.count}
@@ -344,13 +335,13 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
                         </span>
                         <span
                           className={cn(
-                            "text-xs px-1.5 py-0.5 rounded font-medium",
+                            "text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide border",
                             c.customer.type === "INDIVIDUAL"
-                              ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                              : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400"
+                              ? "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-700"
+                              : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:border-sky-800"
                           )}
                         >
-                          {c.customer.type === "INDIVIDUAL" ? "IND" : "COL"}
+                          {c.customer.type === "INDIVIDUAL" ? "Individual" : "Collective"}
                         </span>
                       </div>
                     </td>

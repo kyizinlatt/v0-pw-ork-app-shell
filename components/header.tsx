@@ -50,12 +50,12 @@ export function Header({
       {/* Center: search */}
       <div className="flex-1 flex justify-center">
         <button
-          className="flex items-center gap-2 w-52 px-3 py-1.5 border border-border rounded-lg text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
+          className="hidden sm:flex items-center gap-2 w-64 px-3 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground/30 transition-all"
           aria-label="Search cases (Cmd+K)"
         >
-          <Search className="w-3.5 h-3.5 shrink-0" />
+          <Search className="w-4 h-4 shrink-0" />
           <span className="flex-1 text-left">Search cases...</span>
-          <kbd className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-mono">
+          <kbd className="text-[11px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border font-mono">
             ⌘K
           </kbd>
         </button>
