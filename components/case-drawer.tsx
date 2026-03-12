@@ -7,6 +7,7 @@ import {
   SheetContent,
   SheetClose,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Button } from "@/components/ui/button"
@@ -269,6 +270,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
         >
           <VisuallyHidden>
             <SheetTitle>Case {caseData.caseNumber}</SheetTitle>
+            <SheetDescription>Case details and management panel</SheetDescription>
           </VisuallyHidden>
 
           {/* Resize Handle */}
