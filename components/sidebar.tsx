@@ -22,6 +22,7 @@ import {
   FileStack,
   Plus,
   Receipt,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -67,6 +68,7 @@ const menuGroups: MenuGroup[] = [
         badge: 127,
         submenu: serviceTypes,
       },
+      { label: "Inbox", icon: MessageSquare, href: "/inbox", badge: 5 },
       { label: "Calendar", icon: CalendarDays, href: "/calendar" },
     ],
   },
