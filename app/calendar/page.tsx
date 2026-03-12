@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { Sidebar } from "@/components/sidebar"
+import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -20,6 +22,7 @@ const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 export default function CalendarPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 13)) // March 13, 2026
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 2, 13))
 
@@ -87,22 +90,33 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-          <p className="text-sm text-muted-foreground">View SLA deadlines, meetings, and events</p>
-        </div>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
-          <Plus className="size-4" />
-          Add Event
-        </Button>
-      </div>
+    <div className="flex h-screen bg-muted/30">
+      <Sidebar
+        activeItem="Calendar"
+        onMobileClose={() => setMobileMenuOpen(false)}
+        mobileOpen={mobileMenuOpen}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Grid */}
-        <Card className="lg:col-span-2">
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+
+        <main className="flex-1 overflow-auto">
+          <div className="p-6 max-w-7xl mx-auto">
+            {/* Page Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
+                <p className="text-sm text-muted-foreground">View SLA deadlines, meetings, and events</p>
+              </div>
+              <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Plus className="size-4" />
+                Add Event
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Calendar Grid */}
+              <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">
@@ -235,24 +249,27 @@ export default function CalendarPage() {
                 <p className="text-sm text-muted-foreground">No events for this date</p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+              </Card>
+            </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-6">
-        <div className="flex items-center gap-2">
-          <div className="size-3 rounded-full bg-rose-500" />
-          <span className="text-sm text-muted-foreground">SLA Due</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="size-3 rounded-full bg-indigo-500" />
-          <span className="text-sm text-muted-foreground">Meeting</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="size-3 rounded-full bg-amber-500" />
-          <span className="text-sm text-muted-foreground">Deadline</span>
-        </div>
+            {/* Legend */}
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-2">
+                <div className="size-3 rounded-full bg-rose-500" />
+                <span className="text-sm text-muted-foreground">SLA Due</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-3 rounded-full bg-indigo-500" />
+                <span className="text-sm text-muted-foreground">Meeting</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-3 rounded-full bg-amber-500" />
+                <span className="text-sm text-muted-foreground">Deadline</span>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   )
