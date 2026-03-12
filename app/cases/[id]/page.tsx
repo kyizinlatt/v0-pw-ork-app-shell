@@ -175,40 +175,27 @@ export default function CaseDetailPage() {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="px-6">
-              <TabsList className="bg-transparent border-b-0 p-0 h-auto gap-6">
-                <TabsTrigger
-                  value="overview"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent rounded-none px-1 pb-3"
-                >
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  value="documents"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent rounded-none px-1 pb-3"
-                >
-                  Documents ({caseData.documents.length})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="messages"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent rounded-none px-1 pb-3"
-                >
-                  Messages ({caseData.messages.length})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="finance"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent rounded-none px-1 pb-3"
-                >
-                  Finance
-                </TabsTrigger>
-                <TabsTrigger
-                  value="timeline"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent rounded-none px-1 pb-3"
-                >
-                  Timeline
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="border-b border-border">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="px-6">
+                <TabsList className="bg-transparent border-0 p-0 h-auto gap-0 flex">
+                  {[
+                    { value: "overview", label: "Overview" },
+                    { value: "documents", label: `Documents (${caseData.documents.length})` },
+                    { value: "messages", label: `Messages (${caseData.messages.length})` },
+                    { value: "finance", label: "Finance" },
+                    { value: "timeline", label: "Timeline" },
+                  ].map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="relative h-12 px-4 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 transition-all"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
 
           {/* Tab Content */}
