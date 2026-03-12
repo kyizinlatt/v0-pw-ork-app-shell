@@ -161,36 +161,39 @@ export default function CaseDetailPage() {
                   </h1>
                   <StatusBadge status={caseData.status} />
                 </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline">
-                    <RotateCcw className="size-4 mr-2" />
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <RotateCcw className="size-3.5 mr-1.5" />
                     Return
                   </Button>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                    <ArrowRight className="size-4 mr-2" />
-                    Submit to Embassy
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                    <ArrowRight className="size-3.5 mr-1.5" />
+                    Submit to Partner
                   </Button>
                 </div>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-border">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="px-6">
-                <TabsList className="bg-transparent border-0 p-0 h-auto gap-0 flex">
+            <div className="px-6 pt-1">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="h-10 bg-muted/50 p-1 rounded-lg">
                   {[
-                    { value: "overview", label: "Overview" },
-                    { value: "documents", label: `Documents (${caseData.documents.length})` },
-                    { value: "messages", label: `Messages (${caseData.messages.length})` },
-                    { value: "finance", label: "Finance" },
-                    { value: "timeline", label: "Timeline" },
+                    { value: "overview", label: "Overview", count: null },
+                    { value: "documents", label: "Documents", count: caseData.documents.length },
+                    { value: "messages", label: "Messages", count: caseData.messages.length },
+                    { value: "finance", label: "Finance", count: null },
+                    { value: "timeline", label: "Timeline", count: null },
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="relative h-12 px-4 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 transition-all"
+                      className="h-8 px-3 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
                     >
                       {tab.label}
+                      {tab.count !== null && (
+                        <span className="ml-1.5 text-xs text-muted-foreground">{tab.count}</span>
+                      )}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -207,15 +210,14 @@ export default function CaseDetailPage() {
                   {/* Left Column - 2 cols */}
                   <div className="lg:col-span-2 space-y-6">
                     {/* Customer Info Card */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                          <User className="size-4 text-muted-foreground" />
-                          Customer Information
+                    <Card className="border-0 shadow-sm bg-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                          Customer
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                           <PropertyRow label="Full Name" value={caseData.customer.fullName} />
                           <PropertyRow label="Type" value={caseData.customer.type} />
                           <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
@@ -228,15 +230,14 @@ export default function CaseDetailPage() {
                     </Card>
 
                     {/* Service & SLA Card */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                          <Clock className="size-4 text-muted-foreground" />
+                    <Card className="border-0 shadow-sm bg-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                           Service & SLA
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-4">
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-4">
                           <PropertyRow label="Service" value={`${caseData.service.code} - ${caseData.service.name}`} />
                           <PropertyRow label="SLA Days" value={`${caseData.service.slaDays} days`} />
                           <PropertyRow label="Price" value={`฿${caseData.service.price}`} />

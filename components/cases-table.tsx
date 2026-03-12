@@ -202,31 +202,24 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
         {/* Filter bar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           {/* Status tabs */}
-          <div className="flex items-center gap-1 border border-border rounded-lg p-1 bg-muted/30">
+          <div className="flex items-center bg-muted/50 rounded-lg p-1">
             {statusTabs.map((tab) => (
               <Tooltip key={tab.value}>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => handleTabChange(tab.value)}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-all flex items-center gap-2",
+                      "h-8 px-3 text-sm font-medium rounded-md whitespace-nowrap transition-all flex items-center gap-2",
                       activeTab === tab.value
-                        ? "bg-background text-foreground shadow-sm border border-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    {tab.value === "PWIN_QUEUE" && <Building2 className="size-4" />}
-                    {tab.value === "PARTNER_QUEUE" && <Users className="size-4" />}
+                    {tab.value === "PWIN_QUEUE" && <Building2 className="size-3.5" />}
+                    {tab.value === "PARTNER_QUEUE" && <Users className="size-3.5" />}
                     {tab.label}
                     {tab.count !== undefined && (
-                      <span
-                        className={cn(
-                          "text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
-                          activeTab === tab.value
-                            ? "bg-indigo-600 text-white"
-                            : "bg-muted text-muted-foreground"
-                        )}
-                      >
+                      <span className="text-xs text-muted-foreground tabular-nums">
                         {tab.count}
                       </span>
                     )}

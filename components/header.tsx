@@ -30,7 +30,7 @@ export function Header({
   onMenuClick,
 }: HeaderProps) {
   return (
-    <header className="h-14 sticky top-0 z-40 bg-background border-b border-border flex items-center px-4 gap-4">
+    <header className="h-12 sticky top-0 z-40 bg-background border-b border-border flex items-center px-4 gap-4">
       {/* Left: hamburger + breadcrumb */}
       <div className="flex items-center gap-3">
         <Button
@@ -50,12 +50,12 @@ export function Header({
       {/* Center: search */}
       <div className="flex-1 flex justify-center">
         <button
-          className="hidden sm:flex items-center gap-2 w-64 px-3 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground/30 transition-all"
+          className="hidden sm:flex items-center gap-2 w-56 h-8 px-3 bg-muted/50 rounded-md text-sm text-muted-foreground hover:bg-muted transition-colors"
           aria-label="Search cases (Cmd+K)"
         >
           <Search className="w-4 h-4 shrink-0" />
-          <span className="flex-1 text-left">Search cases...</span>
-          <kbd className="text-[11px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border font-mono">
+          <span className="flex-1 text-left text-xs">Search...</span>
+          <kbd className="text-[10px] text-muted-foreground px-1 font-mono">
             ⌘K
           </kbd>
         </button>
@@ -106,7 +106,7 @@ export function Header({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-semibold text-white cursor-pointer hover:bg-indigo-700 transition-colors"
+              className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[11px] font-medium text-white cursor-pointer hover:bg-indigo-700 transition-colors"
               aria-label={user.name}
             >
               {user.initials}

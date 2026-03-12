@@ -147,13 +147,13 @@ export function Sidebar({
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="flex items-center justify-between h-14 px-4 border-b border-white/10">
+      <div className="flex items-center justify-between h-12 px-3 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-indigo-900 font-bold text-sm">P</span>
+          <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
+            <span className="text-indigo-900 font-bold text-xs">P</span>
           </div>
           {!collapsed && (
-            <span className="text-xl font-bold text-white">Work</span>
+            <span className="text-base font-semibold text-white">Work</span>
           )}
         </Link>
         {/* Mobile close button */}
@@ -170,12 +170,12 @@ export function Sidebar({
       </div>
 
       {/* Nav Groups */}
-      <nav className="flex-1 p-2 flex flex-col gap-4 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 flex flex-col gap-4 overflow-y-auto">
         {visibleGroups.map((group) => (
           <div key={group.label}>
             {/* Group Label */}
             {!collapsed && (
-              <p className="px-3 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">
+              <p className="px-2 mb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
                 {group.label}
               </p>
             )}
@@ -198,41 +198,41 @@ export function Sidebar({
                       <CollapsibleTrigger asChild>
                         <button
                           className={cn(
-                            "flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                            "flex items-center gap-2.5 w-full rounded-md px-2 py-1.5 text-sm font-medium transition-all",
                             isActive
-                              ? "bg-white/15 text-white shadow-sm"
+                              ? "bg-white/15 text-white"
                               : "text-white/70 hover:bg-white/10 hover:text-white"
                           )}
                         >
-                          <Icon className="w-5 h-5 shrink-0" />
+                          <Icon className="w-4 h-4 shrink-0" />
                           <span className="truncate flex-1 text-left">{label}</span>
                           {badge && (
-                            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded">
                               {badge}
                             </span>
                           )}
                           <ChevronDown
                             className={cn(
-                              "w-4 h-4 shrink-0 transition-transform duration-200",
+                              "w-3.5 h-3.5 shrink-0 transition-transform",
                               casesOpen && "rotate-180"
                             )}
                           />
                         </button>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                        <div className="ml-4 pl-4 border-l border-white/10 mt-1 flex flex-col gap-0.5">
+                      <CollapsibleContent className="overflow-hidden">
+                        <div className="ml-3 pl-3 border-l border-white/10 mt-1 flex flex-col gap-0.5">
                           {/* All Cases Link */}
                           <Link
                             href={href}
                             onClick={onMobileClose}
                             className={cn(
-                              "flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                              "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm transition-all",
                               pathname === href
                                 ? "bg-white/10 text-white"
                                 : "text-white/60 hover:bg-white/5 hover:text-white"
                             )}
                           >
-                            <FileStack className="w-4 h-4 shrink-0" />
+                            <FileStack className="w-3.5 h-3.5 shrink-0" />
                             <span className="truncate flex-1">All Cases</span>
                           </Link>
                           {/* Service Type Submenus */}
@@ -247,17 +247,16 @@ export function Sidebar({
                                 href={serviceHref}
                                 onClick={onMobileClose}
                                 className={cn(
-                                  "flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                                  "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm transition-all",
                                   isServiceActive
                                     ? "bg-white/10 text-white"
                                     : "text-white/60 hover:bg-white/5 hover:text-white"
                                 )}
                               >
-                                <span className="w-4 h-4 shrink-0 flex items-center justify-center text-xs font-mono font-semibold bg-white/10 rounded">
-                                  {service.code.slice(0, 2)}
+                                <span className="w-5 shrink-0 text-xs font-mono text-white/50">
+                                  {service.code}
                                 </span>
-                                <span className="truncate flex-1">{service.code}</span>
-                                <span className="text-xs text-white/40">
+                                <span className="text-xs text-white/40 ml-auto tabular-nums">
                                   {service.count}
                                 </span>
                               </Link>
@@ -276,20 +275,20 @@ export function Sidebar({
                     href={href}
                     onClick={onMobileClose}
                     className={cn(
-                      "flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                      "flex items-center gap-2.5 w-full rounded-md px-2 py-1.5 text-sm font-medium transition-all",
                       isActive
-                        ? "bg-white/15 text-white shadow-sm"
+                        ? "bg-white/15 text-white"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                     )}
                     aria-current={isActive ? "page" : undefined}
                     title={collapsed ? label : undefined}
                   >
-                    <Icon className="w-5 h-5 shrink-0" />
+                    <Icon className="w-4 h-4 shrink-0" />
                     {!collapsed && (
                       <>
                         <span className="truncate flex-1">{label}</span>
                         {badge && (
-                          <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded">
                             {badge}
                           </span>
                         )}
