@@ -33,7 +33,6 @@ import {
   DollarSign,
   Info,
   Zap,
-  GripVertical,
   Building2,
   AlertTriangle,
   Reply,
@@ -216,20 +215,6 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
     finance: false,
     info: false,
   })
-  const [sectionOrder, setSectionOrder] = useState<string[]>([
-    "customer",
-    "service",
-    "pwinStaff",
-    "partnerStaff",
-    "timeline",
-    "actions",
-    "messages",
-    "notes",
-    "documents",
-    "finance",
-    "info",
-  ])
-  const [draggedSection, setDraggedSection] = useState<string | null>(null)
   const [drawerWidth, setDrawerWidth] = useState(DEFAULT_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
   const [showAssignPartnerDialog, setShowAssignPartnerDialog] = useState(false)
@@ -242,38 +227,6 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }))
-  }
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, sectionId: string) => {
-    setDraggedSection(sectionId)
-    e.dataTransfer.effectAllowed = "move"
-  }
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = "move"
-  }
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetSection: string) => {
-    e.preventDefault()
-    if (!draggedSection || draggedSection === targetSection) return
-
-    setSectionOrder((prev) => {
-      const newOrder = [...prev]
-      const draggedIndex = newOrder.indexOf(draggedSection)
-      const targetIndex = newOrder.indexOf(targetSection)
-
-      newOrder.splice(draggedIndex, 1)
-      newOrder.splice(targetIndex, 0, draggedSection)
-
-      return newOrder
-    })
-    setDraggedSection(null)
-  }
-
-  const handleDragEnd = () => {
-    setDraggedSection(null)
   }
 
   const slaPercentage = ((caseData.slaTotalDays - caseData.slaRemaining) / caseData.slaTotalDays) * 100
@@ -494,7 +447,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               "bg-muted border border-border border-l-0 opacity-0 group-hover:opacity-100 transition-opacity",
               isResizing && "opacity-100"
             )}>
-              <GripVertical className="size-3 text-muted-foreground" />
+              <div className="w-0.5 h-4 bg-muted-foreground/50 rounded-full" />
             </div>
           </div>
 
@@ -1311,12 +1264,6 @@ interface CollapsibleSectionProps {
   badge?: number | string
   customBadge?: React.ReactNode
   highlight?: boolean
-  sectionId?: string
-  isDragging?: boolean
-  onDragStart?: (e: React.DragEvent<HTMLDivElement>, sectionId: string) => void
-  onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void
-  onDrop?: (e: React.DragEvent<HTMLDivElement>, sectionId: string) => void
-  onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void
 }
 
 function CollapsibleSection({
@@ -1328,30 +1275,18 @@ function CollapsibleSection({
   badge,
   customBadge,
   highlight,
-  sectionId,
-  isDragging,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
 }: CollapsibleSectionProps) {
   return (
     <Collapsible open={open} onOpenChange={onToggle}>
       <div
-        draggable
-        onDragStart={(e) => onDragStart?.(e, sectionId || "")}
-        onDragOver={onDragOver}
-        onDrop={(e) => onDrop?.(e, sectionId || "")}
-        onDragEnd={onDragEnd}
         className={cn(
-          "border-b border-border cursor-grab active:cursor-grabbing transition-all",
-          isDragging && "opacity-50 bg-muted/30",
+          "border-b border-border transition-all",
           highlight && "bg-indigo-50/50 dark:bg-indigo-950/20"
         )}
       >
         <CollapsibleTrigger className="flex items-center justify-between w-full px-6 py-3 hover:bg-muted/50 transition-colors">
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground cursor-grab active:cursor-grabbing">{icon}</span>
+            <span className="text-muted-foreground">{icon}</span>
             <span className="text-sm font-semibold text-foreground">{title}</span>
             {customBadge ? (
               customBadge

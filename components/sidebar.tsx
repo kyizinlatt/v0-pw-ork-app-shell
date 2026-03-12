@@ -67,6 +67,7 @@ const menuGroups: MenuGroup[] = [
         badge: 127,
         submenu: serviceTypes,
       },
+      { label: "Calendar", icon: CalendarDays, href: "/calendar" },
     ],
   },
   {
