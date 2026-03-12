@@ -552,17 +552,29 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("info")}
             >
               <PropertyList>
-                <PropertyRow label="Case ID" value={<span className="font-mono text-xs">{caseData.caseNumber}</span>} />
-                <PropertyRow label="Branch" value={caseData.branch || "HQ - Head Office"} />
-                <PropertyRow label="Status" value={<StatusBadge status={caseData.status} size="sm" />} />
                 <PropertyRow label="Organization" value={caseData.organization} />
                 <PropertyRow label="Public" value={caseData.isPublic ? "Yes" : "No"} />
                 {caseData.isPublic && (
                   <PropertyRow
-                    label="Track Link"
+                    label="Public Token"
                     value={
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[150px]">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                          {caseData.publicToken}
+                        </code>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Copy token">
+                          <Copy className="size-3" />
+                        </Button>
+                      </div>
+                    }
+                  />
+                )}
+                {caseData.isPublic && (
+                  <PropertyRow
+                    label="Public Link"
+                    value={
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[140px]">
                           /track/{caseData.publicToken}
                         </code>
                         <Button variant="ghost" size="icon" className="h-6 w-6" title="Copy link">
@@ -574,39 +586,6 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 )}
                 <PropertyRow label="Created" value={caseData.createdAt} />
                 <PropertyRow label="Updated" value={caseData.updatedAt} />
-              </PropertyList>
-            </CollapsibleSection>
-
-            {/* Customer Section */}
-            <CollapsibleSection
-              title="Customer"
-              icon={<User className="size-4" />}
-              open={expandedSections.customer}
-              onToggle={() => toggleSection("customer")}
-            >
-              <PropertyList>
-                <PropertyRow label="Full Name" value={caseData.customer.fullName} />
-                <PropertyRow label="Type" value={caseData.customer.type} />
-                <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
-                <PropertyRow label="Email" value={caseData.customer.email} copyable />
-              </PropertyList>
-            </CollapsibleSection>
-
-            {/* Service & SLA Section */}
-            <CollapsibleSection
-              title="Service & SLA"
-              icon={<Clock className="size-4" />}
-              open={expandedSections.service}
-              onToggle={() => toggleSection("service")}
-            >
-              <PropertyList>
-                <PropertyRow
-                  label="Service"
-                  value={`${caseData.service.code} - ${caseData.service.name}`}
-                />
-                <PropertyRow label="SLA Days" value={`${caseData.service.slaDays} days`} />
-                <PropertyRow label="SLA Due" value={caseData.slaDue} />
-                <PropertyRow label="Remaining" value={`${caseData.slaRemaining} days`} />
               </PropertyList>
             </CollapsibleSection>
 
