@@ -685,90 +685,113 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               badge={messages.filter((m) => !m.deleted).length}
             >
               {/* Message list */}
-              <div className="space-y-1 mb-3 max-h-72 overflow-y-auto px-0.5">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={cn(
-                      "group flex flex-col gap-0.5",
-                      msg.isOwn ? "items-end" : "items-start"
-                    )}
-                  >
-                    {/* Sender label for non-own */}
-                    {!msg.isOwn && !msg.deleted && (
-                      <span className="text-[11px] font-medium text-muted-foreground px-1">
-                        {msg.sender}
-                        <span className="text-[10px] text-muted-foreground/60 ml-1">({msg.senderType})</span>
-                      </span>
-                    )}
+              <div className="space-y-1.5 mb-3 max-h-72 overflow-y-auto px-0.5">
+                {messages.map((msg, idx) => {
+                  const showAvatar = idx === 0 || messages[idx - 1].sender !== msg.sender
+                  const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase()
+                  const getAvatarColor = (type: string) =>
+                    type === "PWIN" ? "bg-indigo-600" : "bg-amber-600"
 
-                    <div className={cn("flex items-end gap-1.5 max-w-[88%]", msg.isOwn && "flex-row-reverse")}>
-                      {/* Action buttons — appear on hover */}
-                      {!msg.deleted && (
-                        <div className={cn(
-                          "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mb-0.5",
-                          msg.isOwn ? "flex-row-reverse" : "flex-row"
-                        )}>
-                          <button
-                            onClick={() => setReplyTo(msg)}
-                            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                            title="Reply"
-                          >
-                            <Reply className="size-3" />
-                          </button>
-                          {msg.isOwn && (
-                            <button
-                              onClick={() => handleDeleteMessage(msg.id)}
-                              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="size-3" />
-                            </button>
-                          )}
-                        </div>
+                  return (
+                    <div
+                      key={msg.id}
+                      className={cn(
+                        "group flex gap-2",
+                        msg.isOwn ? "flex-row-reverse" : "flex-row"
                       )}
-
-                      {/* Bubble */}
-                      {msg.deleted ? (
-                        <div className="px-3 py-1.5 rounded-xl rounded-bl-sm bg-muted/40 border border-dashed border-border">
-                          <span className="text-xs text-muted-foreground italic">This message was deleted</span>
-                        </div>
-                      ) : (
+                    >
+                      {/* Avatar — only show at start of conversation group */}
+                      {showAvatar && (
                         <div
                           className={cn(
-                            "px-3.5 py-2 text-sm leading-snug",
-                            msg.isOwn
-                              ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
-                              : "bg-muted text-foreground rounded-2xl rounded-bl-sm"
+                            "size-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5",
+                            getAvatarColor(msg.senderType)
                           )}
+                          title={`${msg.sender} (${msg.senderType})`}
                         >
-                          {/* Reply-to preview */}
-                          {msg.replyTo && (
-                            <div className={cn(
-                              "flex items-start gap-1.5 mb-2 px-2 py-1.5 rounded-lg text-xs",
-                              msg.isOwn
-                                ? "bg-white/20 text-white/90"
-                                : "bg-background/70 text-muted-foreground"
-                            )}>
-                              <CornerUpLeft className="size-3 shrink-0 mt-0.5" />
-                              <div className="min-w-0">
-                                <span className="font-medium block truncate">{msg.replyTo.sender}</span>
-                                <span className="truncate block opacity-80">{msg.replyTo.content}</span>
-                              </div>
-                            </div>
-                          )}
-                          {msg.content}
-                          <span className={cn(
-                            "block text-[10px] mt-1 text-right",
-                            msg.isOwn ? "text-white/60" : "text-muted-foreground"
-                          )}>
-                            {msg.time}
-                          </span>
+                          {getInitials(msg.sender)}
                         </div>
                       )}
+                      {!showAvatar && <div className="size-6 shrink-0" />}
+
+                      {/* Message bubble and actions */}
+                      <div className={cn("flex flex-col gap-0.5 flex-1", msg.isOwn ? "items-end" : "items-start")}>
+                        {/* Sender label for non-own messages, first of group */}
+                        {!msg.isOwn && showAvatar && !msg.deleted && (
+                          <span className="text-[10px] font-medium text-muted-foreground px-1">
+                            {msg.sender}
+                          </span>
+                        )}
+
+                        <div className={cn("flex items-end gap-1", msg.isOwn && "flex-row-reverse")}>
+                          {/* Action buttons — appear on hover */}
+                          {!msg.deleted && (
+                            <div className={cn(
+                              "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mb-0.5",
+                              msg.isOwn ? "flex-row-reverse" : "flex-row"
+                            )}>
+                              <button
+                                onClick={() => setReplyTo(msg)}
+                                className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                                title="Reply"
+                              >
+                                <Reply className="size-3" />
+                              </button>
+                              {msg.isOwn && (
+                                <button
+                                  onClick={() => handleDeleteMessage(msg.id)}
+                                  className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Bubble */}
+                          {msg.deleted ? (
+                            <div className="px-3 py-1.5 rounded-lg bg-muted/40 border border-dashed border-border">
+                              <span className="text-xs text-muted-foreground italic">This message was deleted</span>
+                            </div>
+                          ) : (
+                            <div
+                              className={cn(
+                                "px-3.5 py-2 text-sm leading-snug max-w-sm",
+                                msg.isOwn
+                                  ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
+                                  : "bg-muted text-foreground rounded-2xl rounded-bl-sm"
+                              )}
+                            >
+                              {/* Reply-to preview */}
+                              {msg.replyTo && (
+                                <div className={cn(
+                                  "flex items-start gap-1.5 mb-2 px-2 py-1.5 rounded-md text-xs",
+                                  msg.isOwn
+                                    ? "bg-white/20 text-white/90"
+                                    : "bg-background/70 text-muted-foreground"
+                                )}>
+                                  <CornerUpLeft className="size-3 shrink-0 mt-0.5" />
+                                  <div className="min-w-0">
+                                    <span className="font-medium block truncate">{msg.replyTo.sender}</span>
+                                    <span className="truncate block opacity-80">{msg.replyTo.content}</span>
+                                  </div>
+                                </div>
+                              )}
+                              {msg.content}
+                              <span className={cn(
+                                "block text-[10px] mt-1 text-right",
+                                msg.isOwn ? "text-white/60" : "text-muted-foreground"
+                              )}>
+                                {msg.time}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 <div ref={messagesEndRef} />
               </div>
 
