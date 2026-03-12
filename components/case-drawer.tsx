@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react"
 import Link from "next/link"
 import {
   Sheet,
@@ -36,6 +36,9 @@ import {
   GripVertical,
   Building2,
   AlertTriangle,
+  Reply,
+  Trash2,
+  CornerUpLeft,
 } from "lucide-react"
 import {
   Collapsible,
@@ -101,11 +104,33 @@ const sampleCase = {
   messages: [
     {
       id: 1,
+      sender: "Partner Admin A",
+      senderType: "PARTNER",
+      content: "Received the case. Will start processing today.",
+      isOwn: false,
+      time: "3 hours ago",
+      deleted: false,
+      replyTo: null as null | { id: number; sender: string; content: string },
+    },
+    {
+      id: 2,
       sender: "SRP Admin",
       senderType: "PWIN",
       content: "Documents verified. Sending to Partner for processing.",
       isOwn: true,
       time: "1 hour ago",
+      deleted: false,
+      replyTo: { id: 1, sender: "Partner Admin A", content: "Received the case. Will start processing today." },
+    },
+    {
+      id: 3,
+      sender: "Partner Admin A",
+      senderType: "PARTNER",
+      content: "Passport scan quality is too low, can you re-upload?",
+      isOwn: false,
+      time: "45 min ago",
+      deleted: true,
+      replyTo: null as null | { id: number; sender: string; content: string },
     },
   ],
   blockNotes: [
@@ -156,8 +181,14 @@ const currentUser = {
   name: "SRP Admin",
 }
 
+type Message = typeof sampleCase.messages[0]
+
 export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const [messageText, setMessageText] = useState("")
+  const [messages, setMessages] = useState<Message[]>(sampleCase.messages)
+  const [replyTo, setReplyTo] = useState<Message | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     customer: true,
     service: true,
@@ -257,6 +288,54 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const handleMouseDown = () => {
     setIsResizing(true)
   }
+
+  // Send message
+  const handleSendMessage = () => {
+    const trimmed = messageText.trim()
+    if (!trimmed) return
+    const newMsg: Message = {
+      id: Date.now(),
+      sender: currentUser.name,
+      senderType: "PWIN",
+      content: trimmed,
+      isOwn: true,
+      time: "Just now",
+      deleted: false,
+      replyTo: replyTo ? { id: replyTo.id, sender: replyTo.sender, content: replyTo.content } : null,
+    }
+    setMessages((prev) => [...prev, newMsg])
+    setMessageText("")
+    setReplyTo(null)
+  }
+
+  // Delete message (own only)
+  const handleDeleteMessage = (id: number) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, deleted: true } : m))
+    )
+  }
+
+  // Keyboard send: Ctrl/Cmd + Enter
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault()
+      handleSendMessage()
+    }
+    if (e.key === "Escape" && replyTo) {
+      e.preventDefault()
+      setReplyTo(null)
+    }
+  }
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // Focus textarea on reply
+  useEffect(() => {
+    if (replyTo) textareaRef.current?.focus()
+  }, [replyTo])
 
   const useTwoColumns = drawerWidth >= 600
 
@@ -603,54 +682,136 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               icon={<MessageSquare className="size-4" />}
               open={expandedSections.messages}
               onToggle={() => toggleSection("messages")}
-              badge={caseData.messages.length}
+              badge={messages.filter((m) => !m.deleted).length}
             >
-              <div className="space-y-2 mb-3 max-h-56 overflow-y-auto">
-                {caseData.messages.map((msg) => (
+              {/* Message list */}
+              <div className="space-y-1 mb-3 max-h-72 overflow-y-auto px-0.5">
+                {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={cn("flex", msg.isOwn ? "justify-end" : "justify-start")}
+                    className={cn(
+                      "group flex flex-col gap-0.5",
+                      msg.isOwn ? "items-end" : "items-start"
+                    )}
                   >
-                    <div
-                      className={cn(
-                        "max-w-[85%] px-3.5 py-2 text-sm leading-snug",
-                        msg.isOwn
-                          ? "bg-indigo-600 text-white rounded-xl rounded-br-sm"
-                          : "bg-muted text-foreground rounded-xl rounded-bl-sm"
-                      )}
-                    >
-                      {!msg.isOwn && (
-                        <span className="block text-xs text-muted-foreground mb-0.5 font-medium">
-                          {msg.sender}
-                        </span>
-                      )}
-                      {msg.content}
-                      <span
-                        className={cn(
-                          "block text-[10px] mt-1 text-right opacity-70",
-                          msg.isOwn ? "text-white" : "text-muted-foreground"
-                        )}
-                      >
-                        {msg.time}
+                    {/* Sender label for non-own */}
+                    {!msg.isOwn && !msg.deleted && (
+                      <span className="text-[11px] font-medium text-muted-foreground px-1">
+                        {msg.sender}
+                        <span className="text-[10px] text-muted-foreground/60 ml-1">({msg.senderType})</span>
                       </span>
+                    )}
+
+                    <div className={cn("flex items-end gap-1.5 max-w-[88%]", msg.isOwn && "flex-row-reverse")}>
+                      {/* Action buttons — appear on hover */}
+                      {!msg.deleted && (
+                        <div className={cn(
+                          "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mb-0.5",
+                          msg.isOwn ? "flex-row-reverse" : "flex-row"
+                        )}>
+                          <button
+                            onClick={() => setReplyTo(msg)}
+                            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            title="Reply"
+                          >
+                            <Reply className="size-3" />
+                          </button>
+                          {msg.isOwn && (
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Bubble */}
+                      {msg.deleted ? (
+                        <div className="px-3 py-1.5 rounded-xl rounded-bl-sm bg-muted/40 border border-dashed border-border">
+                          <span className="text-xs text-muted-foreground italic">This message was deleted</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={cn(
+                            "px-3.5 py-2 text-sm leading-snug",
+                            msg.isOwn
+                              ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
+                              : "bg-muted text-foreground rounded-2xl rounded-bl-sm"
+                          )}
+                        >
+                          {/* Reply-to preview */}
+                          {msg.replyTo && (
+                            <div className={cn(
+                              "flex items-start gap-1.5 mb-2 px-2 py-1.5 rounded-lg text-xs",
+                              msg.isOwn
+                                ? "bg-white/20 text-white/90"
+                                : "bg-background/70 text-muted-foreground"
+                            )}>
+                              <CornerUpLeft className="size-3 shrink-0 mt-0.5" />
+                              <div className="min-w-0">
+                                <span className="font-medium block truncate">{msg.replyTo.sender}</span>
+                                <span className="truncate block opacity-80">{msg.replyTo.content}</span>
+                              </div>
+                            </div>
+                          )}
+                          {msg.content}
+                          <span className={cn(
+                            "block text-[10px] mt-1 text-right",
+                            msg.isOwn ? "text-white/60" : "text-muted-foreground"
+                          )}>
+                            {msg.time}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
-              <div className="relative">
+
+              {/* Compose area */}
+              <div className="border border-border rounded-xl overflow-hidden bg-background focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-400 transition-all">
+                {/* Reply preview bar */}
+                {replyTo && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-950/30 border-b border-indigo-200 dark:border-indigo-800">
+                    <CornerUpLeft className="size-3.5 text-indigo-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{replyTo.sender}</span>
+                      <span className="text-xs text-indigo-600/70 dark:text-indigo-400/70 ml-2 truncate">{replyTo.content}</span>
+                    </div>
+                    <button
+                      onClick={() => setReplyTo(null)}
+                      className="text-indigo-400 hover:text-indigo-600 transition-colors"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                )}
                 <Textarea
-                  placeholder="Type a message..."
+                  ref={textareaRef}
+                  placeholder="Type a message... (Ctrl+Enter to send)"
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  className="min-h-[72px] pr-12 resize-none text-sm"
+                  onKeyDown={handleKeyDown}
+                  className="min-h-[64px] border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none text-sm rounded-none bg-transparent px-3 pt-2.5 pb-1"
                 />
-                <Button 
-                  size="icon" 
-                  className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700 shadow-sm"
-                  disabled={!messageText.trim()}
-                >
-                  <Send className="size-4" />
-                </Button>
+                <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
+                  <span className="text-[10px] text-muted-foreground">
+                    {messageText.length > 0 ? `${messageText.length} chars` : "Ctrl+Enter to send"}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={handleSendMessage}
+                    disabled={!messageText.trim()}
+                    className="h-7 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs gap-1.5"
+                  >
+                    <Send className="size-3" />
+                    Send
+                  </Button>
+                </div>
               </div>
             </CollapsibleSection>
 
