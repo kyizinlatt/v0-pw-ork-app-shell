@@ -769,8 +769,14 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                     type === "PWIN" ? "bg-indigo-600" : "bg-amber-600"
 
                   return (
-                    <div key={msg.id} className="group flex gap-2.5 items-start">
-                      {/* Avatar — always on left */}
+                    <div 
+                      key={msg.id} 
+                      className={cn(
+                        "group flex gap-2.5 items-start",
+                        msg.isOwn ? "flex-row-reverse" : "flex-row"
+                      )}
+                    >
+                      {/* Avatar */}
                       <div
                         className={cn(
                           "size-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
@@ -782,9 +788,15 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                       </div>
 
                       {/* Message content */}
-                      <div className="flex-1 min-w-0">
+                      <div className={cn(
+                        "flex-1 min-w-0 flex flex-col",
+                        msg.isOwn ? "items-end" : "items-start"
+                      )}>
                         {/* Header: Sender + time */}
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className={cn(
+                          "flex items-center gap-2 mb-1",
+                          msg.isOwn ? "flex-row-reverse" : "flex-row"
+                        )}>
                           <span className="text-sm font-medium text-foreground">{msg.sender}</span>
                           <span className="text-xs text-muted-foreground">{msg.time}</span>
                         </div>
@@ -798,15 +810,25 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                           <>
                             {/* Reply-to preview */}
                             {msg.replyTo && (
-                              <div className="flex items-start gap-1.5 mb-1.5 px-2.5 py-1.5 rounded-md bg-muted/50 border-l-2 border-indigo-400 text-xs max-w-sm">
-                                <CornerUpLeft className="size-3 shrink-0 mt-0.5 text-muted-foreground" />
+                              <div className={cn(
+                                "flex items-start gap-1.5 mb-1.5 px-2.5 py-1.5 rounded-md text-xs max-w-sm border-l-2",
+                                msg.isOwn
+                                  ? "bg-indigo-100 dark:bg-indigo-950/30 border-indigo-400 text-indigo-900 dark:text-indigo-100"
+                                  : "bg-muted/50 border-indigo-400 text-foreground"
+                              )}>
+                                <CornerUpLeft className="size-3 shrink-0 mt-0.5" />
                                 <div className="min-w-0">
-                                  <span className="font-medium text-foreground block truncate">{msg.replyTo.sender}</span>
-                                  <span className="truncate block text-muted-foreground">{msg.replyTo.content}</span>
+                                  <span className="font-medium block truncate">{msg.replyTo.sender}</span>
+                                  <span className="truncate block opacity-80">{msg.replyTo.content}</span>
                                 </div>
                               </div>
                             )}
-                            <div className="px-3.5 py-2.5 bg-muted text-foreground rounded-xl rounded-tl-sm text-sm leading-relaxed max-w-sm">
+                            <div className={cn(
+                              "px-3.5 py-2.5 rounded-xl text-sm leading-relaxed max-w-sm",
+                              msg.isOwn
+                                ? "bg-indigo-600 text-white rounded-br-sm"
+                                : "bg-muted text-foreground rounded-bl-sm"
+                            )}>
                               {msg.content}
                             </div>
                           </>
@@ -814,7 +836,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
 
                         {/* Action buttons — below bubble, appear on hover */}
                         {!msg.deleted && (
-                          <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className={cn(
+                            "flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity",
+                            msg.isOwn ? "flex-row-reverse" : "flex-row"
+                          )}>
                             <button
                               onClick={() => setReplyTo(msg)}
                               className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
