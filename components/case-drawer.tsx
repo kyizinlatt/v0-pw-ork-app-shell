@@ -39,6 +39,8 @@ import {
   Reply,
   Trash2,
   CornerUpLeft,
+  Smile,
+  Paperclip,
 } from "lucide-react"
 import {
   Collapsible,
@@ -196,8 +198,11 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null)
   const [showMentions, setShowMentions] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [attachedImages, setAttachedImages] = useState<{ id: string; name: string; url: string }[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     customer: true,
     service: true,
@@ -412,6 +417,41 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
     setMessageText(newText)
     setShowMentions(false)
     textareaRef.current?.focus()
+  }
+
+  // Common emojis for quick picker
+  const commonEmojis = ["😀", "😂", "😍", "🥰", "😊", "👍", "👎", "❤️", "🔥", "✅", "🎉", "💯", "🙏", "👏", "😢", "😮"]
+
+  // Insert emoji into message
+  const insertEmoji = (emoji: string) => {
+    setMessageText((prev) => prev + emoji)
+    setShowEmojiPicker(false)
+    textareaRef.current?.focus()
+  }
+
+  // Handle image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        const url = URL.createObjectURL(file)
+        setAttachedImages((prev) => [
+          ...prev,
+          { id: `img-${Date.now()}-${Math.random()}`, name: file.name, url }
+        ])
+      }
+    })
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  // Remove attached image
+  const removeAttachedImage = (id: string) => {
+    setAttachedImages((prev) => prev.filter((img) => img.id !== id))
   }
 
   // Auto-scroll to latest message
@@ -1095,14 +1135,79 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                       ))}
                   </div>
                 )}
+                {/* Attached images preview */}
+                {attachedImages.length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 border-t border-border overflow-x-auto">
+                    {attachedImages.map((img) => (
+                      <div key={img.id} className="relative shrink-0 group/img">
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="h-12 w-12 object-cover rounded-md border border-border"
+                        />
+                        <button
+                          onClick={() => removeAttachedImage(img.id)}
+                          className="absolute -top-1.5 -right-1.5 size-4 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+                        >
+                          <X className="size-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Emoji picker dropdown */}
+                {showEmojiPicker && (
+                  <div className="border-t border-border bg-muted/40 p-2">
+                    <div className="flex flex-wrap gap-1">
+                      {commonEmojis.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => insertEmoji(emoji)}
+                          className="size-8 flex items-center justify-center hover:bg-muted rounded transition-colors text-lg"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
-                  <span className="text-[10px] text-muted-foreground">
-                    {messageText.length > 0 ? `${messageText.length} chars` : "Enter to send"}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className={cn(
+                        "h-7 w-7 rounded flex items-center justify-center transition-colors",
+                        showEmojiPicker
+                          ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-400"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                      title="Add emoji"
+                    >
+                      <Smile className="size-4" />
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-7 w-7 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Attach image"
+                    >
+                      <Paperclip className="size-4" />
+                    </button>
+                    <span className="text-[10px] text-muted-foreground ml-1">
+                      {messageText.length > 0 ? `${messageText.length} chars` : "Enter to send"}
+                    </span>
+                  </div>
                   <Button
                     size="sm"
                     onClick={handleSendMessage}
-                    disabled={!messageText.trim()}
+                    disabled={!messageText.trim() && attachedImages.length === 0}
                     className="h-7 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs gap-1.5"
                   >
                     <Send className="size-3" />
