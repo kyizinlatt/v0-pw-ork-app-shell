@@ -12,6 +12,8 @@ import {
   FolderOpen,
   AlertCircle,
   AlertTriangle,
+  FileWarning,
+  NotebookPen,
   Building2,
   Users,
 } from "lucide-react"
@@ -31,8 +33,10 @@ const allCases = [
     customer: { name: "Win Tun", type: "INDIVIDUAL" as const },
     service: { code: "KS", name: "Kyant Sal" },
     status: "CHECKING" as CaseStatus,
-    slaDue: "Mar 25, 2026",
-    slaWarning: false,
+    slaDue: "Mar 13, 2026",
+    slaWarning: true,            // SLA icon
+    missingDocuments: true,       // Missing docs icon
+    blockNote: true,              // Block note icon
     assignedPwinStaff: "SRP Admin",
     assignedPartnerStaff: null as string | null,
     created: "11 Mar 2026",
@@ -45,6 +49,8 @@ const allCases = [
     status: "WORKING" as CaseStatus,
     slaDue: "Mar 20, 2026",
     slaWarning: true,
+    missingDocuments: false,
+    blockNote: false,
     assignedPwinStaff: "SRP Admin",
     assignedPartnerStaff: "Partner Admin A",
     created: "11 Mar 2026",
@@ -311,28 +317,58 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-sm text-foreground">{c.caseNumber}</span>
-                        {/* All issue icons stacked in a row — single source of alerts */}
-                        {(c.slaWarning || needsPartnerAssignment(c)) && (
-                          <div className="flex items-center gap-1">
+                        {/* Issue icons — all stacked in a row next to Case ID only */}
+                        {(c.slaWarning || needsPartnerAssignment(c) || c.missingDocuments || c.blockNote) && (
+                          <div className="flex items-center gap-0.5">
                             {c.slaWarning && (
                               <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertTriangle className="size-4 text-amber-500" />
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex cursor-default">
+                                    <AlertTriangle className="size-3.5 text-amber-500" />
+                                  </span>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-xs">
-                                  <p className="font-semibold">SLA Warning</p>
-                                  <p className="text-xs opacity-80">Deadline approaching — action required before {c.slaDue}</p>
+                                  <p className="font-semibold text-amber-500">SLA Warning</p>
+                                  <p className="text-xs text-muted-foreground">Deadline approaching — action required before {c.slaDue}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {c.missingDocuments && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex cursor-default">
+                                    <FileWarning className="size-3.5 text-rose-500" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p className="font-semibold text-rose-500">Missing Documents</p>
+                                  <p className="text-xs text-muted-foreground">Required documents have not been uploaded yet</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {c.blockNote && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex cursor-default">
+                                    <NotebookPen className="size-3.5 text-violet-500" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p className="font-semibold text-violet-500">Block Note</p>
+                                  <p className="text-xs text-muted-foreground">This case has an internal block note — review before proceeding</p>
                                 </TooltipContent>
                               </Tooltip>
                             )}
                             {needsPartnerAssignment(c) && (
                               <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertCircle className="size-4 text-orange-500" />
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex cursor-default">
+                                    <AlertCircle className="size-3.5 text-orange-500" />
+                                  </span>
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
-                                  <p className="font-semibold">Partner not assigned</p>
-                                  <p className="text-xs opacity-80">Case is submitted but no partner staff assigned yet</p>
+                                  <p className="font-semibold text-orange-500">Partner Not Assigned</p>
+                                  <p className="text-xs text-muted-foreground">Case is submitted but no partner staff assigned yet</p>
                                 </TooltipContent>
                               </Tooltip>
                             )}
