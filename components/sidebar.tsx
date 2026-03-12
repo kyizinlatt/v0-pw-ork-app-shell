@@ -71,10 +71,10 @@ const menuGroups: MenuGroup[] = [
     label: "Administration",
     permission: "ADMIN",
     items: [
-      { label: "Service Types", icon: Settings, href: "/settings/service-types" },
-      { label: "Partners", icon: Building2, href: "/settings/partners" },
-      { label: "Users", icon: Users, href: "/settings/users" },
-      { label: "Holidays", icon: CalendarDays, href: "/settings/holidays" },
+      { label: "Branches", icon: Building2, href: "/admin/branches" },
+      { label: "Service Types", icon: Settings, href: "/admin/service-types" },
+      { label: "Partners", icon: Building2, href: "/admin/partners" },
+      { label: "Users", icon: Users, href: "/admin/users" },
     ],
   },
   {

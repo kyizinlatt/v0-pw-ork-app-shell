@@ -15,6 +15,7 @@ import {
   Building2,
   Users,
 } from "lucide-react"
+
 import {
   Tooltip,
   TooltipContent,
@@ -310,15 +311,32 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-sm text-foreground">{c.caseNumber}</span>
-                        {needsPartnerAssignment(c) && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <AlertCircle className="size-4 text-amber-500" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Partner assignment required</p>
-                            </TooltipContent>
-                          </Tooltip>
+                        {/* All issue icons stacked in a row — single source of alerts */}
+                        {(c.slaWarning || needsPartnerAssignment(c)) && (
+                          <div className="flex items-center gap-1">
+                            {c.slaWarning && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="size-4 text-amber-500" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p className="font-semibold">SLA Warning</p>
+                                  <p className="text-xs opacity-80">Deadline approaching — action required before {c.slaDue}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {needsPartnerAssignment(c) && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertCircle className="size-4 text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p className="font-semibold">Partner not assigned</p>
+                                  <p className="text-xs opacity-80">Case is submitted but no partner staff assigned yet</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -347,33 +365,12 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
                       <StatusBadge status={c.status} />
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      {c.slaDue ? (
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={cn(
-                              "text-sm",
-                              c.slaWarning ? "text-amber-600 font-semibold" : "text-muted-foreground"
-                            )}
-                          >
-                            {c.slaDue}
-                          </span>
-                          {c.slaWarning && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <AlertTriangle className="size-4 text-amber-500 animate-pulse" />
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-xs">
-                                <div className="space-y-1">
-                                  <p className="font-semibold text-amber-500">Critical: SLA Warning</p>
-                                  <p className="text-xs text-muted-foreground">SLA deadline is approaching — action required before {c.slaDue}</p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
-                      )}
+                      <span className={cn(
+                        "text-sm",
+                        c.slaWarning ? "text-amber-600 font-semibold" : "text-muted-foreground"
+                      )}>
+                        {c.slaDue ?? "—"}
+                      </span>
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
