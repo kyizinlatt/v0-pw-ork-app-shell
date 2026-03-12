@@ -685,7 +685,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               badge={messages.filter((m) => !m.deleted).length}
             >
               {/* Message list */}
-              <div className="space-y-1.5 mb-3 max-h-72 overflow-y-auto px-0.5">
+              <div className="space-y-2 mb-3 max-h-72 overflow-y-auto px-0.5">
                 {messages.map((msg, idx) => {
                   const showAvatar = idx === 0 || messages[idx - 1].sender !== msg.sender
                   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase()
@@ -696,26 +696,30 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                     <div
                       key={msg.id}
                       className={cn(
-                        "group flex gap-2 items-start",
-                        msg.isOwn ? "flex-row-reverse" : "flex-row"
+                        "group flex gap-2 items-end",
+                        msg.isOwn ? "justify-end" : "justify-start"
                       )}
                     >
-                      {/* Avatar — only show at start of conversation group, positioned on correct side */}
-                      {showAvatar && (
-                        <div
-                          className={cn(
-                            "size-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-1",
-                            getAvatarColor(msg.senderType)
+                      {/* Left avatar — for others' messages */}
+                      {!msg.isOwn && (
+                        <>
+                          {showAvatar && (
+                            <div
+                              className={cn(
+                                "size-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
+                                getAvatarColor(msg.senderType)
+                              )}
+                              title={`${msg.sender} (${msg.senderType})`}
+                            >
+                              {getInitials(msg.sender)}
+                            </div>
                           )}
-                          title={`${msg.sender} (${msg.senderType})`}
-                        >
-                          {getInitials(msg.sender)}
-                        </div>
+                          {!showAvatar && <div className="size-7 shrink-0" />}
+                        </>
                       )}
-                      {!showAvatar && <div className="size-6 shrink-0" />}
 
-                      {/* Message bubble and actions */}
-                      <div className={cn("flex flex-col gap-0.5 flex-1", msg.isOwn ? "items-end" : "items-start")}>
+                      {/* Message content */}
+                      <div className="flex flex-col gap-0.5 max-w-xs">
                         {/* Sender label for non-own messages, first of group */}
                         {!msg.isOwn && showAvatar && !msg.deleted && (
                           <span className="text-[10px] font-medium text-muted-foreground px-1">
@@ -723,13 +727,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                           </span>
                         )}
 
-                        <div className={cn("flex items-end gap-1", msg.isOwn && "flex-row-reverse")}>
+                        <div className={cn("flex items-end gap-1")}>
                           {/* Action buttons — appear on hover */}
                           {!msg.deleted && (
-                            <div className={cn(
-                              "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mb-0.5",
-                              msg.isOwn ? "flex-row-reverse" : "flex-row"
-                            )}>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => setReplyTo(msg)}
                                 className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -737,15 +738,6 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                               >
                                 <Reply className="size-3" />
                               </button>
-                              {msg.isOwn && (
-                                <button
-                                  onClick={() => handleDeleteMessage(msg.id)}
-                                  className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="size-3" />
-                                </button>
-                              )}
                             </div>
                           )}
 
@@ -757,7 +749,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                           ) : (
                             <div
                               className={cn(
-                                "px-3.5 py-2 text-sm leading-snug max-w-sm",
+                                "px-3.5 py-2 text-sm leading-snug",
                                 msg.isOwn
                                   ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
                                   : "bg-muted text-foreground rounded-2xl rounded-bl-sm"
@@ -787,8 +779,37 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                               </span>
                             </div>
                           )}
+
+                          {/* Delete button — own messages only, right of bubble */}
+                          {msg.isOwn && !msg.deleted && (
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors opacity-0 group-hover:opacity-100"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          )}
                         </div>
                       </div>
+
+                      {/* Right avatar — for own messages */}
+                      {msg.isOwn && (
+                        <>
+                          {showAvatar && (
+                            <div
+                              className={cn(
+                                "size-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
+                                getAvatarColor(msg.senderType)
+                              )}
+                              title={`${msg.sender} (${msg.senderType})`}
+                            >
+                              {getInitials(msg.sender)}
+                            </div>
+                          )}
+                          {!showAvatar && <div className="size-7 shrink-0" />}
+                        </>
+                      )}
                     </div>
                   )
                 })}
