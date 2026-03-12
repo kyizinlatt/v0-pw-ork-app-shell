@@ -682,7 +682,43 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               icon={<MessageSquare className="size-4" />}
               open={expandedSections.messages}
               onToggle={() => toggleSection("messages")}
-              badge={messages.filter((m) => !m.deleted).length}
+              customBadge={
+                <div className="flex items-center gap-2">
+                  {/* Participant avatars */}
+                  <div className="flex items-center -space-x-1.5">
+                    {Array.from(new Set(messages.map((m) => m.sender)))
+                      .slice(0, 3)
+                      .map((sender, idx) => {
+                        const msg = messages.find((m) => m.sender === sender)
+                        const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase()
+                        const getAvatarColor = (type: string) =>
+                          type === "PWIN" ? "bg-indigo-600" : "bg-amber-600"
+                        return (
+                          <div
+                            key={sender}
+                            className={cn(
+                              "size-5 rounded-full flex items-center justify-center text-[9px] font-semibold text-white border border-background",
+                              msg ? getAvatarColor(msg.senderType) : "bg-gray-500"
+                            )}
+                            title={sender}
+                          >
+                            {getInitials(sender)}
+                          </div>
+                        )
+                      })}
+                  </div>
+                  {/* +N badge if more participants */}
+                  {Array.from(new Set(messages.map((m) => m.sender))).length > 3 && (
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      +{Array.from(new Set(messages.map((m) => m.sender))).length - 3}
+                    </span>
+                  )}
+                  {/* Message count */}
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                    {messages.filter((m) => !m.deleted).length}
+                  </span>
+                </div>
+              }
             >
               {/* Message list */}
               <div className="space-y-2 mb-3 max-h-72 overflow-y-auto px-0.5">
@@ -1101,6 +1137,7 @@ interface CollapsibleSectionProps {
   onToggle: () => void
   children: React.ReactNode
   badge?: number | string
+  customBadge?: React.ReactNode
   highlight?: boolean
 }
 
@@ -1111,6 +1148,7 @@ function CollapsibleSection({
   onToggle,
   children,
   badge,
+  customBadge,
   highlight,
 }: CollapsibleSectionProps) {
   return (
@@ -1123,7 +1161,9 @@ function CollapsibleSection({
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{icon}</span>
             <span className="text-sm font-semibold text-foreground">{title}</span>
-            {badge !== undefined && (
+            {customBadge ? (
+              customBadge
+            ) : badge !== undefined && (
               <span className={cn(
                 "text-xs px-1.5 py-0.5 rounded-full",
                 badge === "!" 
