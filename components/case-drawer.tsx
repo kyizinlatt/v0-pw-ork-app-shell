@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import Link from "next/link"
 import {
   Sheet,
   SheetContent,
@@ -33,6 +34,7 @@ import {
   DollarSign,
   Info,
   Zap,
+  GripVertical,
 } from "lucide-react"
 import {
   Collapsible,
@@ -62,7 +64,7 @@ const sampleCase = {
   slaTotalDays: 14,
   submittedDate: null,
   assignedStaff: "SRP Admin",
-  organization: "HQ — SRP Head Office",
+  organization: "HQ - SRP Head Office",
   publicToken: "abc123xyz",
   createdAt: "11 Mar 2026, 09:00",
   updatedAt: "2 hours ago",
@@ -114,6 +116,10 @@ interface CaseDrawerProps {
   caseId: string | null
 }
 
+const MIN_WIDTH = 400
+const MAX_WIDTH = 1200
+const DEFAULT_WIDTH = 700
+
 export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const [messageText, setMessageText] = useState("")
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -128,6 +134,9 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
     finance: false,
     info: false,
   })
+  const [drawerWidth, setDrawerWidth] = useState(DEFAULT_WIDTH)
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeRef = useRef<HTMLDivElement>(null)
   const caseData = sampleCase
 
   const toggleSection = (section: string) => {
@@ -136,32 +145,95 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
 
   const slaPercentage = ((caseData.slaTotalDays - caseData.slaRemaining) / caseData.slaTotalDays) * 100
 
+  // Handle mouse move for resizing
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing) return
+    const newWidth = window.innerWidth - e.clientX
+    if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+      setDrawerWidth(newWidth)
+    }
+  }, [isResizing])
+
+  // Handle mouse up to stop resizing
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false)
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
+  }, [])
+
+  // Add and remove event listeners
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+      document.body.style.cursor = "ew-resize"
+      document.body.style.userSelect = "none"
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp])
+
+  // Start resizing
+  const handleMouseDown = () => {
+    setIsResizing(true)
+  }
+
+  // Determine if we should use 2-column layout
+  const useTwoColumns = drawerWidth >= 600
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[60vw] max-w-[60vw] overflow-y-auto p-0 flex flex-col"
+        className="overflow-y-auto p-0 flex flex-col"
+        style={{ width: `${drawerWidth}px`, maxWidth: `${drawerWidth}px` }}
       >
         <VisuallyHidden>
           <SheetTitle>Case {caseData.caseNumber}</SheetTitle>
         </VisuallyHidden>
 
+        {/* Resize Handle */}
+        <div
+          ref={resizeRef}
+          onMouseDown={handleMouseDown}
+          className={cn(
+            "absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize z-50 group flex items-center",
+            "hover:bg-indigo-500/50 transition-colors",
+            isResizing && "bg-indigo-500"
+          )}
+        >
+          <div className={cn(
+            "absolute left-0 w-4 h-12 flex items-center justify-center rounded-r-md",
+            "bg-muted border border-border border-l-0 opacity-0 group-hover:opacity-100 transition-opacity",
+            isResizing && "opacity-100"
+          )}>
+            <GripVertical className="size-3 text-muted-foreground" />
+          </div>
+        </div>
+
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <span className="font-mono font-semibold tracking-tight text-foreground">
+            <Link
+              href={`/cases/${caseData.id}`}
+              className="font-mono font-semibold tracking-tight text-foreground hover:text-indigo-600 transition-colors underline-offset-4 hover:underline"
+            >
               {caseData.caseNumber}
-            </span>
+            </Link>
             <StatusBadge status={caseData.status} />
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.open(`/cases/${caseData.id}`, "_blank")}
+              asChild
             >
-              <ExternalLink className="size-4 mr-1.5" />
-              Open
+              <Link href={`/cases/${caseData.id}`}>
+                <ExternalLink className="size-4 mr-1.5" />
+                Full Page
+              </Link>
             </Button>
             <SheetClose asChild>
               <Button variant="ghost" size="icon">
@@ -173,54 +245,99 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
 
         {/* Scrollable Sections */}
         <div className="flex-1 overflow-y-auto">
-          {/* Customer Section */}
-          <CollapsibleSection
-            title="Customer"
-            icon={<User className="size-4" />}
-            open={expandedSections.customer}
-            onToggle={() => toggleSection("customer")}
-          >
-            <PropertyList>
-              <PropertyRow label="Full Name" value={caseData.customer.fullName} />
-              <PropertyRow label="Type" value={caseData.customer.type} />
-              <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
-              <PropertyRow label="Email" value={caseData.customer.email} copyable />
-            </PropertyList>
-          </CollapsibleSection>
-
-          {/* Service & SLA Section */}
-          <CollapsibleSection
-            title="Service & SLA"
-            icon={<Clock className="size-4" />}
-            open={expandedSections.service}
-            onToggle={() => toggleSection("service")}
-          >
-            <PropertyList>
-              <PropertyRow
-                label="Service"
-                value={`${caseData.service.code} — ${caseData.service.name}`}
-              />
-              <PropertyRow label="SLA Days" value={`${caseData.service.slaDays} days`} />
-            </PropertyList>
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">SLA Progress</span>
-                <span className={cn(
-                  "text-sm font-semibold",
-                  slaPercentage > 70 ? "text-amber-600" : "text-green-600"
-                )}>
-                  {caseData.slaRemaining}d remaining
-                </span>
+          {/* Customer & Service Row - 2 columns when wide */}
+          {useTwoColumns ? (
+            <div className="grid grid-cols-2 border-b border-border">
+              {/* Customer Section */}
+              <div className="border-r border-border p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Customer</span>
+                </div>
+                <PropertyList>
+                  <PropertyRow label="Name" value={caseData.customer.fullName} />
+                  <PropertyRow label="Type" value={caseData.customer.type} />
+                  <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
+                  <PropertyRow label="Email" value={caseData.customer.email} copyable />
+                </PropertyList>
               </div>
-              <Progress 
-                value={slaPercentage} 
-                className="h-2"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                Due: {caseData.slaDue}
-              </p>
+
+              {/* Service Section */}
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Service & SLA</span>
+                </div>
+                <PropertyList>
+                  <PropertyRow
+                    label="Service"
+                    value={`${caseData.service.code} - ${caseData.service.name}`}
+                  />
+                  <PropertyRow label="SLA" value={`${caseData.service.slaDays} days`} />
+                </PropertyList>
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-foreground">Progress</span>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      slaPercentage > 70 ? "text-amber-600" : "text-green-600"
+                    )}>
+                      {caseData.slaRemaining}d left
+                    </span>
+                  </div>
+                  <Progress value={slaPercentage} className="h-1.5" />
+                </div>
+              </div>
             </div>
-          </CollapsibleSection>
+          ) : (
+            <>
+              {/* Customer Section - Collapsible for narrow */}
+              <CollapsibleSection
+                title="Customer"
+                icon={<User className="size-4" />}
+                open={expandedSections.customer}
+                onToggle={() => toggleSection("customer")}
+              >
+                <PropertyList>
+                  <PropertyRow label="Full Name" value={caseData.customer.fullName} />
+                  <PropertyRow label="Type" value={caseData.customer.type} />
+                  <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
+                  <PropertyRow label="Email" value={caseData.customer.email} copyable />
+                </PropertyList>
+              </CollapsibleSection>
+
+              {/* Service & SLA Section */}
+              <CollapsibleSection
+                title="Service & SLA"
+                icon={<Clock className="size-4" />}
+                open={expandedSections.service}
+                onToggle={() => toggleSection("service")}
+              >
+                <PropertyList>
+                  <PropertyRow
+                    label="Service"
+                    value={`${caseData.service.code} - ${caseData.service.name}`}
+                  />
+                  <PropertyRow label="SLA Days" value={`${caseData.service.slaDays} days`} />
+                </PropertyList>
+                <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-foreground">SLA Progress</span>
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      slaPercentage > 70 ? "text-amber-600" : "text-green-600"
+                    )}>
+                      {caseData.slaRemaining}d remaining
+                    </span>
+                  </div>
+                  <Progress value={slaPercentage} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Due: {caseData.slaDue}
+                  </p>
+                </div>
+              </CollapsibleSection>
+            </>
+          )}
 
           {/* Status Actions Section */}
           <CollapsibleSection
@@ -245,26 +362,102 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             </p>
           </CollapsibleSection>
 
-          {/* Assigned Staff Section */}
-          <CollapsibleSection
-            title="Assigned"
-            icon={<User className="size-4" />}
-            open={expandedSections.assigned}
-            onToggle={() => toggleSection("assigned")}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">SA</span>
+          {/* Assigned & Info Row - 2 columns when wide */}
+          {useTwoColumns ? (
+            <div className="grid grid-cols-2 border-b border-border">
+              {/* Assigned Section */}
+              <div className="border-r border-border p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Assigned</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">SA</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{caseData.assignedStaff}</p>
+                    <p className="text-xs text-muted-foreground">PWIN Staff</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="mt-3">
+                  Reassign
+                </Button>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">{caseData.assignedStaff}</p>
-                <p className="text-xs text-muted-foreground">PWIN Staff</p>
+
+              {/* Quick Info Section */}
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Info className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Quick Info</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Organization</span>
+                    <span className="text-foreground font-medium">{caseData.organization}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Created</span>
+                    <span className="text-foreground font-medium">{caseData.createdAt}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Updated</span>
+                    <span className="text-foreground font-medium">{caseData.updatedAt}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="mt-3">
-              Reassign
-            </Button>
-          </CollapsibleSection>
+          ) : (
+            <>
+              {/* Assigned Staff Section */}
+              <CollapsibleSection
+                title="Assigned"
+                icon={<User className="size-4" />}
+                open={expandedSections.assigned}
+                onToggle={() => toggleSection("assigned")}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">SA</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{caseData.assignedStaff}</p>
+                    <p className="text-xs text-muted-foreground">PWIN Staff</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="mt-3">
+                  Reassign
+                </Button>
+              </CollapsibleSection>
+
+              {/* Quick Info Section */}
+              <CollapsibleSection
+                title="Quick Info"
+                icon={<Info className="size-4" />}
+                open={expandedSections.info}
+                onToggle={() => toggleSection("info")}
+              >
+                <PropertyList>
+                  <PropertyRow label="Organization" value={caseData.organization} />
+                  <PropertyRow
+                    label="Public Token"
+                    value={
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                          {caseData.publicToken}
+                        </code>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <Copy className="size-3" />
+                        </Button>
+                      </div>
+                    }
+                  />
+                  <PropertyRow label="Created" value={caseData.createdAt} />
+                  <PropertyRow label="Updated" value={caseData.updatedAt} />
+                </PropertyList>
+              </CollapsibleSection>
+            </>
+          )}
 
           {/* Timeline Section */}
           <CollapsibleSection
@@ -358,7 +551,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 >
                   <p className="text-sm text-foreground">{note.content}</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {note.author} · {note.time}
+                    {note.author} - {note.time}
                   </p>
                 </div>
               ))}
@@ -376,7 +569,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             onToggle={() => toggleSection("documents")}
             badge={caseData.documents.length}
           >
-            <div className="space-y-2">
+            <div className={cn(
+              "gap-2",
+              useTwoColumns ? "grid grid-cols-2" : "flex flex-col"
+            )}>
               {caseData.documents.map((doc) => (
                 <div
                   key={doc.id}
@@ -398,7 +594,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                       {doc.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {doc.size} · {doc.uploader} · {doc.time}
+                      {doc.size}
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -420,7 +616,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             open={expandedSections.finance}
             onToggle={() => toggleSection("finance")}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className={cn(
+              "gap-3",
+              useTwoColumns ? "grid grid-cols-4" : "grid grid-cols-2"
+            )}>
               <FinanceCard label="Total" value={caseData.finance.total} currency={caseData.finance.currency} />
               <FinanceCard label="Partner Cost" value={caseData.finance.partnerCost} currency={caseData.finance.currency} />
               <FinanceCard label="Paid" value={caseData.finance.paid} currency={caseData.finance.currency} variant="success" />
@@ -429,33 +628,6 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             <Button variant="outline" size="sm" className="mt-4">
               Record Payment
             </Button>
-          </CollapsibleSection>
-
-          {/* Quick Info Section */}
-          <CollapsibleSection
-            title="Quick Info"
-            icon={<Info className="size-4" />}
-            open={expandedSections.info}
-            onToggle={() => toggleSection("info")}
-          >
-            <PropertyList>
-              <PropertyRow label="Organization" value={caseData.organization} />
-              <PropertyRow
-                label="Public Token"
-                value={
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                      {caseData.publicToken}
-                    </code>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Copy className="size-3" />
-                    </Button>
-                  </div>
-                }
-              />
-              <PropertyRow label="Created" value={caseData.createdAt} />
-              <PropertyRow label="Updated" value={caseData.updatedAt} />
-            </PropertyList>
           </CollapsibleSection>
         </div>
       </SheetContent>
@@ -527,8 +699,8 @@ function PropertyRow({
   copyable?: boolean
 }) {
   return (
-    <div className="flex min-h-[36px] items-center gap-4">
-      <span className="w-[120px] flex-shrink-0 text-sm text-muted-foreground">
+    <div className="flex min-h-[32px] items-center gap-4">
+      <span className="w-[80px] flex-shrink-0 text-sm text-muted-foreground">
         {label}
       </span>
       <span className="text-sm text-foreground font-medium flex items-center gap-1">
