@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import {
   Sheet,
@@ -245,14 +245,13 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
       setShowReasonDialog(true)
       return
     }
-    // Execute transition
-    console.log(`[v0] Transition: ${caseData.status} → ${transition.toStatus}`)
+    // Execute transition - in production, call API to update status
   }
 
   // Handle partner assignment
   const handleAssignPartner = () => {
     if (selectedPartnerStaff) {
-      console.log(`[v0] Assigned partner staff: ${selectedPartnerStaff}`)
+      // In production, call API to assign partner staff
       setShowAssignPartnerDialog(false)
       setSelectedPartnerStaff("")
     }
@@ -261,7 +260,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   // Handle transition with reason
   const handleTransitionWithReason = () => {
     if (pendingTransition && transitionReason.trim()) {
-      console.log(`[v0] Transition: ${caseData.status} → ${pendingTransition.toStatus}, Reason: ${transitionReason}`)
+      // In production, call API with transition and reason
       setShowReasonDialog(false)
       setTransitionReason("")
       setPendingTransition(null)

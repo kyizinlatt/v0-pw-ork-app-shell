@@ -102,8 +102,8 @@ export default function PublicTrackPage() {
   }
 
   const handleDownload = (doc: typeof caseData.public_documents[0]) => {
-    // In real app, this would use signed URL
-    console.log(`[v0] Download document: ${doc.original_name}`)
+    // In production, this would generate and use a signed URL for secure download
+    window.open(`/api/documents/${doc.id}/download`, "_blank")
   }
 
   return (

@@ -18,10 +18,15 @@ export default function LoginPage() {
     setError("")
     setIsLoading(true)
 
-    // Simulate API call
+    // Simulate API call delay
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Demo: show error for invalid credentials
+    // SECURITY NOTE: This is demo-only authentication.
+    // In production, implement proper auth with:
+    // - Secure password hashing (bcrypt)
+    // - HTTP-only cookies for session tokens
+    // - Rate limiting on login attempts
+    // - CSRF protection
     if (email !== "admin@pwork.com" || password !== "admin123") {
       setError("Invalid email or password. Try admin@pwork.com / admin123")
       setIsLoading(false)
