@@ -696,15 +696,15 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                     <div
                       key={msg.id}
                       className={cn(
-                        "group flex gap-2",
+                        "group flex gap-2 items-start",
                         msg.isOwn ? "flex-row-reverse" : "flex-row"
                       )}
                     >
-                      {/* Avatar — only show at start of conversation group */}
+                      {/* Avatar — only show at start of conversation group, positioned on correct side */}
                       {showAvatar && (
                         <div
                           className={cn(
-                            "size-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5",
+                            "size-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-1",
                             getAvatarColor(msg.senderType)
                           )}
                           title={`${msg.sender} (${msg.senderType})`}
