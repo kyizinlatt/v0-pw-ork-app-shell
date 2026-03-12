@@ -5,7 +5,9 @@ import {
   Sheet,
   SheetContent,
   SheetClose,
+  SheetTitle,
 } from "@/components/ui/sheet"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { StatusBadge, type CaseStatus } from "@/components/status-badge"
@@ -140,6 +142,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
         side="right"
         className="w-[60vw] max-w-[60vw] overflow-y-auto p-0 flex flex-col"
       >
+        <VisuallyHidden>
+          <SheetTitle>Case {caseData.caseNumber}</SheetTitle>
+        </VisuallyHidden>
+
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
