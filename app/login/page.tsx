@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 
@@ -11,7 +10,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -75,20 +73,12 @@ export default function LoginPage() {
 
               {/* Password */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Password
-                  </label>
-                  <a
-                    href="/forgot-password"
-                    className="text-sm text-indigo-600 hover:text-indigo-700"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -116,22 +106,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Remember me */}
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  disabled={isLoading}
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm text-muted-foreground cursor-pointer"
-                >
-                  Remember me for 30 days
-                </label>
               </div>
-            </div>
 
             {/* Error message */}
             {error && (
