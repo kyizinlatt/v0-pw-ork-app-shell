@@ -324,9 +324,9 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
     )
   }
 
-  // Keyboard send: Ctrl/Cmd + Enter
+  // Keyboard send: Enter to send, Ctrl/Cmd+Enter for new line
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
@@ -885,7 +885,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 )}
                 <Textarea
                   ref={textareaRef}
-                  placeholder="Type a message... (Ctrl+Enter to send, @ to mention)"
+                  placeholder="Type a message... (Enter to send, Ctrl+Enter for new line, @ to mention)"
                   value={messageText}
                   onChange={handleTextChange}
                   onKeyDown={handleKeyDown}
@@ -916,7 +916,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 )}
                 <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
                   <span className="text-[10px] text-muted-foreground">
-                    {messageText.length > 0 ? `${messageText.length} chars` : "Ctrl+Enter to send"}
+                    {messageText.length > 0 ? `${messageText.length} chars` : "Enter to send"}
                   </span>
                   <Button
                     size="sm"
