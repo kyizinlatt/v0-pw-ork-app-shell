@@ -11,6 +11,7 @@ import {
   ChevronsRight, 
   FolderOpen,
   AlertCircle,
+  AlertTriangle,
   Building2,
   Users,
 } from "lucide-react"
@@ -347,17 +348,29 @@ export function CasesTable({ onCaseClick, serviceFilter }: CasesTableProps) {
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       {c.slaDue ? (
-                        <span
-                          className={cn(
-                            "text-sm",
-                            c.slaWarning ? "text-amber-600 font-semibold" : "text-muted-foreground"
-                          )}
-                        >
-                          {c.slaDue}
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={cn(
+                              "text-sm",
+                              c.slaWarning ? "text-amber-600 font-semibold" : "text-muted-foreground"
+                            )}
+                          >
+                            {c.slaDue}
+                          </span>
                           {c.slaWarning && (
-                            <span className="ml-1.5 inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <AlertTriangle className="size-4 text-amber-500 animate-pulse" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <div className="space-y-1">
+                                  <p className="font-semibold text-amber-500">Critical: SLA Warning</p>
+                                  <p className="text-xs text-muted-foreground">SLA deadline is approaching — action required before {c.slaDue}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
-                        </span>
+                        </div>
                       ) : (
                         <span className="text-sm text-muted-foreground">—</span>
                       )}
