@@ -153,11 +153,14 @@ export default function CalendarPage() {
                 const hasSla = events.some((e) => e.type === "sla")
 
                 return (
-                  <button
+                  <div
                     key={idx}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedDate(date)}
+                    onKeyDown={(e) => e.key === "Enter" && setSelectedDate(date)}
                     className={cn(
-                      "relative h-20 p-1 text-left transition-colors bg-background hover:bg-muted/50",
+                      "relative h-20 p-1 text-left transition-colors bg-background hover:bg-muted/50 cursor-pointer",
                       !isCurrentMonth && "bg-muted/30 text-muted-foreground",
                       isSelected(date) && "ring-2 ring-indigo-500 ring-inset"
                     )}
@@ -192,7 +195,7 @@ export default function CalendarPage() {
                         )}
                       </div>
                     )}
-                  </button>
+                  </div>
                 )
               })}
             </div>
