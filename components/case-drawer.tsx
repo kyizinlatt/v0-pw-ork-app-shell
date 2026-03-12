@@ -581,15 +581,15 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("timeline")}
               badge={caseData.timeline.length}
             >
-              <div className="relative border-l-2 border-border ml-2 pl-4 space-y-4">
-                {caseData.timeline.map((event) => (
+              <div className="relative border-l border-border ml-1.5 pl-4 space-y-3">
+                {caseData.timeline.map((event, i) => (
                   <div key={event.id} className="relative">
                     <div className={cn(
-                      "absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-background",
+                      "absolute -left-[17px] top-1 w-2 h-2 rounded-full",
                       event.type === "status" ? "bg-indigo-500" : "bg-muted-foreground"
                     )} />
-                    <p className="text-sm text-foreground">{event.action}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-foreground leading-snug">{event.action}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {event.actor} - {event.time}
                     </p>
                   </div>
@@ -605,7 +605,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("messages")}
               badge={caseData.messages.length}
             >
-              <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+              <div className="space-y-2 mb-3 max-h-56 overflow-y-auto">
                 {caseData.messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -613,22 +613,22 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                   >
                     <div
                       className={cn(
-                        "max-w-[80%] px-4 py-2.5 text-sm leading-relaxed",
+                        "max-w-[85%] px-3.5 py-2 text-sm leading-snug",
                         msg.isOwn
-                          ? "bg-indigo-600 text-white rounded-2xl rounded-tr-sm"
-                          : "bg-muted text-foreground rounded-2xl rounded-tl-sm"
+                          ? "bg-indigo-600 text-white rounded-xl rounded-br-sm"
+                          : "bg-muted text-foreground rounded-xl rounded-bl-sm"
                       )}
                     >
                       {!msg.isOwn && (
-                        <span className="block text-xs text-muted-foreground mb-1 font-medium">
-                          {msg.sender} ({msg.senderType})
+                        <span className="block text-xs text-muted-foreground mb-0.5 font-medium">
+                          {msg.sender}
                         </span>
                       )}
                       {msg.content}
                       <span
                         className={cn(
-                          "block text-[10px] mt-1 text-right",
-                          msg.isOwn ? "text-indigo-200" : "text-muted-foreground"
+                          "block text-[10px] mt-1 text-right opacity-70",
+                          msg.isOwn ? "text-white" : "text-muted-foreground"
                         )}
                       >
                         {msg.time}
@@ -637,14 +637,18 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="relative">
                 <Textarea
                   placeholder="Type a message..."
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[72px] pr-12 resize-none text-sm"
                 />
-                <Button size="icon" className="h-auto bg-indigo-600 hover:bg-indigo-700">
+                <Button 
+                  size="icon" 
+                  className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+                  disabled={!messageText.trim()}
+                >
                   <Send className="size-4" />
                 </Button>
               </div>
@@ -658,28 +662,23 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("notes")}
               badge={caseData.blockNotes.length}
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {caseData.blockNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg p-3"
+                    className="bg-amber-50/70 dark:bg-amber-950/20 border-l-2 border-amber-400 rounded-r-md px-3 py-2.5"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                        {note.author} ({note.authorType})
+                        {note.author}
                       </span>
-                      {note.isInternal && (
-                        <span className="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded">
-                          Internal
-                        </span>
-                      )}
+                      <span className="text-[10px] text-muted-foreground">{note.time}</span>
                     </div>
-                    <p className="text-sm text-foreground">{note.content}</p>
-                    <p className="text-xs text-muted-foreground mt-2">{note.time}</p>
+                    <p className="text-sm text-foreground leading-relaxed">{note.content}</p>
                   </div>
                 ))}
               </div>
-              <Button variant="outline" size="sm" className="mt-3">
+              <Button variant="outline" size="sm" className="mt-3 w-full justify-center">
                 + Add Note
               </Button>
             </CollapsibleSection>
@@ -692,32 +691,27 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("documents")}
               badge={caseData.documents.length}
             >
-              <div className="space-y-2 mb-4">
+              <div className="space-y-1.5 mb-3">
                 {caseData.documents.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:bg-muted/50 transition-colors group"
+                    className="flex items-center gap-2.5 p-2.5 rounded-md bg-muted/40 hover:bg-muted/70 transition-colors group"
                   >
                     <div className="flex-shrink-0">
                       {doc.type === "pdf" ? (
-                        <div className="w-8 h-8 rounded bg-red-100 dark:bg-red-950 flex items-center justify-center">
-                          <FileText className="size-4 text-red-600 dark:text-red-400" />
+                        <div className="w-8 h-8 rounded-md bg-red-100 dark:bg-red-950 flex items-center justify-center">
+                          <FileText className="size-4 text-red-500" />
                         </div>
                       ) : (
-                        <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
-                          <ImageIcon className="size-4 text-blue-600 dark:text-blue-400" />
+                        <div className="w-8 h-8 rounded-md bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                          <ImageIcon className="size-4 text-blue-500" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
-                        <span className={cn(
-                          "text-[10px] px-1.5 py-0.5 rounded",
-                          doc.visibility === "PUBLIC" 
-                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                        )}>
+                        <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide">
                           {doc.visibility}
                         </span>
                       </div>
@@ -728,15 +722,15 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Download className="size-4" />
+                      <Download className="size-3.5" />
                     </Button>
                   </div>
                 ))}
               </div>
-              <Button variant="outline" size="sm">
-                <Upload className="size-4 mr-2" />
+              <Button variant="outline" size="sm" className="w-full justify-center">
+                <Upload className="size-3.5 mr-1.5" />
                 Upload Document
               </Button>
             </CollapsibleSection>
