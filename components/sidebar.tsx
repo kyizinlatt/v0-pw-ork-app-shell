@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Briefcase,
   Settings,
@@ -13,22 +14,57 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
   LayoutDashboard,
-  FileText,
   Bell,
   BarChart3,
+  FileStack,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+
+// Service types for Cases submenu
+const serviceTypes = [
+  { code: "KS", label: "KS - Work Permit", count: 45 },
+  { code: "WP", label: "WP - Extension", count: 32 },
+  { code: "90D", label: "90D - Report", count: 28 },
+  { code: "VISA", label: "VISA - Application", count: 15 },
+  { code: "TM30", label: "TM30 - Notification", count: 7 },
+]
+
+interface MenuItem {
+  label: string
+  icon: React.ElementType
+  href: string
+  badge?: number
+  submenu?: { code: string; label: string; count: number }[]
+}
+
+interface MenuGroup {
+  label: string
+  permission?: string
+  items: MenuItem[]
+}
 
 // Menu items grouped by category
-const menuGroups = [
+const menuGroups: MenuGroup[] = [
   {
     label: "Main",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-      { label: "Cases", icon: Briefcase, href: "/", badge: 127 },
+      {
+        label: "Cases",
+        icon: Briefcase,
+        href: "/",
+        badge: 127,
+        submenu: serviceTypes,
+      },
     ],
   },
   {
@@ -85,6 +121,8 @@ export function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [casesOpen, setCasesOpen] = useState(true)
+  const pathname = usePathname()
 
   // Persist collapsed state
   useEffect(() => {
@@ -145,8 +183,93 @@ export function Sidebar({
 
             {/* Group Items */}
             <div className="flex flex-col gap-0.5">
-              {group.items.map(({ label, icon: Icon, href, badge }) => {
-                const isActive = activeItem === label
+              {group.items.map(({ label, icon: Icon, href, badge, submenu }) => {
+                const isActive = activeItem === label || pathname === href
+                const hasSubmenu = submenu && submenu.length > 0
+
+                // If has submenu and not collapsed, render collapsible
+                if (hasSubmenu && !collapsed) {
+                  return (
+                    <Collapsible
+                      key={label}
+                      open={casesOpen}
+                      onOpenChange={setCasesOpen}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <button
+                          className={cn(
+                            "flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                            isActive
+                              ? "bg-white/15 text-white shadow-sm"
+                              : "text-white/70 hover:bg-white/10 hover:text-white"
+                          )}
+                        >
+                          <Icon className="w-5 h-5 shrink-0" />
+                          <span className="truncate flex-1 text-left">{label}</span>
+                          {badge && (
+                            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+                              {badge}
+                            </span>
+                          )}
+                          <ChevronDown
+                            className={cn(
+                              "w-4 h-4 shrink-0 transition-transform duration-200",
+                              casesOpen && "rotate-180"
+                            )}
+                          />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                        <div className="ml-4 pl-4 border-l border-white/10 mt-1 flex flex-col gap-0.5">
+                          {/* All Cases Link */}
+                          <Link
+                            href={href}
+                            onClick={onMobileClose}
+                            className={cn(
+                              "flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                              pathname === href
+                                ? "bg-white/10 text-white"
+                                : "text-white/60 hover:bg-white/5 hover:text-white"
+                            )}
+                          >
+                            <FileStack className="w-4 h-4 shrink-0" />
+                            <span className="truncate flex-1">All Cases</span>
+                          </Link>
+                          {/* Service Type Submenus */}
+                          {submenu.map((service) => {
+                            const serviceHref = `/?service=${service.code}`
+                            const isServiceActive = pathname === "/" && 
+                              typeof window !== "undefined" && 
+                              new URLSearchParams(window.location.search).get("service") === service.code
+                            return (
+                              <Link
+                                key={service.code}
+                                href={serviceHref}
+                                onClick={onMobileClose}
+                                className={cn(
+                                  "flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm transition-all duration-150",
+                                  isServiceActive
+                                    ? "bg-white/10 text-white"
+                                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                                )}
+                              >
+                                <span className="w-4 h-4 shrink-0 flex items-center justify-center text-xs font-mono font-semibold bg-white/10 rounded">
+                                  {service.code.slice(0, 2)}
+                                </span>
+                                <span className="truncate flex-1">{service.code}</span>
+                                <span className="text-xs text-white/40">
+                                  {service.count}
+                                </span>
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )
+                }
+
+                // Regular menu item
                 return (
                   <Link
                     key={label}
