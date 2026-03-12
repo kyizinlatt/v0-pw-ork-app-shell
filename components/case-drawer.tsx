@@ -21,7 +21,23 @@ import {
   Upload,
   Copy,
   Send,
+  ChevronDown,
+  ChevronRight,
+  User,
+  Clock,
+  MessageSquare,
+  StickyNote,
+  File,
+  DollarSign,
+  Info,
+  Zap,
 } from "lucide-react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Progress } from "@/components/ui/progress"
 
 // Sample case data
 const sampleCase = {
@@ -40,7 +56,8 @@ const sampleCase = {
     slaDays: 14,
   },
   slaDue: "Mar 25, 2026",
-  slaRemaining: "14d left",
+  slaRemaining: 10,
+  slaTotalDays: 14,
   submittedDate: null,
   assignedStaff: "SRP Admin",
   organization: "HQ — SRP Head Office",
@@ -48,8 +65,9 @@ const sampleCase = {
   createdAt: "11 Mar 2026, 09:00",
   updatedAt: "2 hours ago",
   timeline: [
-    { id: 1, action: "SRP Admin advanced to Checking", time: "2 hours ago" },
-    { id: 2, action: "SRP Admin received case", time: "3 hours ago" },
+    { id: 1, action: "SRP Admin advanced to Checking", time: "2 hours ago", type: "status" },
+    { id: 2, action: "SRP Admin received case", time: "3 hours ago", type: "status" },
+    { id: 3, action: "Case created by system", time: "3 hours ago", type: "create" },
   ],
   messages: [
     {
@@ -62,7 +80,7 @@ const sampleCase = {
     {
       id: 2,
       sender: "Win Tun",
-      content: "I will upload it shortly.",
+      content: "I will upload it shortly. Thank you for the quick response!",
       isOwn: false,
       time: "1 hour ago",
     },
@@ -76,14 +94,15 @@ const sampleCase = {
     },
   ],
   documents: [
-    { id: 1, name: "passport-copy.pdf", type: "pdf", uploader: "SRP Admin", time: "2 hours ago" },
-    { id: 2, name: "photo.jpg", type: "image", uploader: "SRP Admin", time: "2 hours ago" },
+    { id: 1, name: "passport-copy.pdf", type: "pdf", uploader: "SRP Admin", time: "2 hours ago", size: "1.2 MB" },
+    { id: 2, name: "photo.jpg", type: "image", uploader: "SRP Admin", time: "2 hours ago", size: "450 KB" },
   ],
   finance: {
     total: "7,500.00",
     partnerCost: "5,500.00",
     paid: "7,500.00",
     outstanding: "0.00",
+    currency: "THB",
   },
 }
 
@@ -95,7 +114,25 @@ interface CaseDrawerProps {
 
 export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const [messageText, setMessageText] = useState("")
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    customer: true,
+    service: true,
+    actions: true,
+    assigned: false,
+    timeline: true,
+    messages: true,
+    notes: false,
+    documents: true,
+    finance: false,
+    info: false,
+  })
   const caseData = sampleCase
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }))
+  }
+
+  const slaPercentage = ((caseData.slaTotalDays - caseData.slaRemaining) / caseData.slaTotalDays) * 100
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -129,44 +166,65 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
         </div>
 
         {/* Scrollable Sections */}
-        <div className="flex-1 overflow-y-auto divide-y divide-border">
+        <div className="flex-1 overflow-y-auto">
           {/* Customer Section */}
-          <DrawerSection title="Customer">
+          <CollapsibleSection
+            title="Customer"
+            icon={<User className="size-4" />}
+            open={expandedSections.customer}
+            onToggle={() => toggleSection("customer")}
+          >
             <PropertyList>
               <PropertyRow label="Full Name" value={caseData.customer.fullName} />
               <PropertyRow label="Type" value={caseData.customer.type} />
-              <PropertyRow label="Phone" value={caseData.customer.phone} />
-              <PropertyRow label="Email" value={caseData.customer.email} />
+              <PropertyRow label="Phone" value={caseData.customer.phone} copyable />
+              <PropertyRow label="Email" value={caseData.customer.email} copyable />
             </PropertyList>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Service & SLA Section */}
-          <DrawerSection title="Service & SLA">
+          <CollapsibleSection
+            title="Service & SLA"
+            icon={<Clock className="size-4" />}
+            open={expandedSections.service}
+            onToggle={() => toggleSection("service")}
+          >
             <PropertyList>
               <PropertyRow
                 label="Service"
                 value={`${caseData.service.code} — ${caseData.service.name}`}
               />
               <PropertyRow label="SLA Days" value={`${caseData.service.slaDays} days`} />
-              <PropertyRow
-                label="Due Date"
-                value={
-                  <span className="text-amber-600 font-medium">
-                    {caseData.slaDue}{" "}
-                    <span className="text-xs">({caseData.slaRemaining})</span>
-                  </span>
-                }
-              />
-              <PropertyRow
-                label="Submitted"
-                value={caseData.submittedDate || "Not yet submitted"}
-              />
             </PropertyList>
-          </DrawerSection>
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">SLA Progress</span>
+                <span className={cn(
+                  "text-sm font-semibold",
+                  slaPercentage > 70 ? "text-amber-600" : "text-green-600"
+                )}>
+                  {caseData.slaRemaining}d remaining
+                </span>
+              </div>
+              <Progress 
+                value={slaPercentage} 
+                className="h-2"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Due: {caseData.slaDue}
+              </p>
+            </div>
+          </CollapsibleSection>
 
           {/* Status Actions Section */}
-          <DrawerSection title="Actions">
-            <div className="flex items-center gap-3">
+          <CollapsibleSection
+            title="Actions"
+            icon={<Zap className="size-4" />}
+            open={expandedSections.actions}
+            onToggle={() => toggleSection("actions")}
+            highlight
+          >
+            <div className="flex flex-wrap items-center gap-3">
               <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
                 <ArrowRight className="size-4 mr-2" />
                 Submit to Embassy
@@ -179,34 +237,60 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             <p className="text-xs text-muted-foreground mt-3">
               Transition will be recorded in timeline
             </p>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Assigned Staff Section */}
-          <DrawerSection title="Assigned">
-            <PropertyList>
-              <PropertyRow label="PWIN Staff" value={caseData.assignedStaff} />
-            </PropertyList>
+          <CollapsibleSection
+            title="Assigned"
+            icon={<User className="size-4" />}
+            open={expandedSections.assigned}
+            onToggle={() => toggleSection("assigned")}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">SA</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{caseData.assignedStaff}</p>
+                <p className="text-xs text-muted-foreground">PWIN Staff</p>
+              </div>
+            </div>
             <Button variant="outline" size="sm" className="mt-3">
               Reassign
             </Button>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Timeline Section */}
-          <DrawerSection title="Timeline">
+          <CollapsibleSection
+            title="Timeline"
+            icon={<Clock className="size-4" />}
+            open={expandedSections.timeline}
+            onToggle={() => toggleSection("timeline")}
+            badge={caseData.timeline.length}
+          >
             <div className="relative border-l-2 border-border ml-2 pl-4 space-y-4">
               {caseData.timeline.map((event) => (
                 <div key={event.id} className="relative">
-                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background" />
+                  <div className={cn(
+                    "absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-background",
+                    event.type === "status" ? "bg-indigo-500" : "bg-muted-foreground"
+                  )} />
                   <p className="text-sm text-foreground">{event.action}</p>
                   <p className="text-xs text-muted-foreground">{event.time}</p>
                 </div>
               ))}
             </div>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Messages Section */}
-          <DrawerSection title="Messages">
-            <div className="space-y-3 mb-4">
+          <CollapsibleSection
+            title="Messages"
+            icon={<MessageSquare className="size-4" />}
+            open={expandedSections.messages}
+            onToggle={() => toggleSection("messages")}
+            badge={caseData.messages.length}
+          >
+            <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
               {caseData.messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -214,7 +298,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 >
                   <div
                     className={cn(
-                      "max-w-[70%] px-4 py-2 text-sm leading-relaxed",
+                      "max-w-[80%] px-4 py-2.5 text-sm leading-relaxed",
                       msg.isOwn
                         ? "bg-indigo-600 text-white rounded-2xl rounded-tr-sm"
                         : "bg-muted text-foreground rounded-2xl rounded-tl-sm"
@@ -243,17 +327,23 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 placeholder="Type a message..."
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                className="resize-none"
+                className="resize-none min-h-[80px]"
                 rows={2}
               />
               <Button className="bg-indigo-600 hover:bg-indigo-700 text-white self-end">
                 <Send className="size-4" />
               </Button>
             </div>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Block Notes Section */}
-          <DrawerSection title="Block Notes">
+          <CollapsibleSection
+            title="Block Notes"
+            icon={<StickyNote className="size-4" />}
+            open={expandedSections.notes}
+            onToggle={() => toggleSection("notes")}
+            badge={caseData.blockNotes.length}
+          >
             <div className="space-y-3">
               {caseData.blockNotes.map((note) => (
                 <div
@@ -270,21 +360,31 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
             <Button variant="outline" size="sm" className="mt-3">
               + Add Note
             </Button>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Documents Section */}
-          <DrawerSection title="Documents">
+          <CollapsibleSection
+            title="Documents"
+            icon={<File className="size-4" />}
+            open={expandedSections.documents}
+            onToggle={() => toggleSection("documents")}
+            badge={caseData.documents.length}
+          >
             <div className="space-y-2">
               {caseData.documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center gap-3 py-2.5 border-b border-border last:border-0"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex-shrink-0">
                     {doc.type === "pdf" ? (
-                      <FileText className="size-8 text-red-500" />
+                      <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950 flex items-center justify-center">
+                        <FileText className="size-5 text-red-600 dark:text-red-400" />
+                      </div>
                     ) : (
-                      <ImageIcon className="size-8 text-blue-500" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                        <ImageIcon className="size-5 text-blue-600 dark:text-blue-400" />
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -292,10 +392,10 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                       {doc.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {doc.uploader} · {doc.time}
+                      {doc.size} · {doc.uploader} · {doc.time}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <Download className="size-4" />
                   </Button>
                 </div>
@@ -305,52 +405,40 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               <Upload className="size-4 mr-2" />
               Upload Document
             </Button>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Finance Section */}
-          <DrawerSection title="Finance">
-            <div className="bg-muted rounded-lg p-4 border border-border">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-sm font-medium text-foreground">
-                    ฿{caseData.finance.total}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Partner Cost</p>
-                  <p className="text-sm font-medium text-foreground">
-                    ฿{caseData.finance.partnerCost}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="text-sm font-medium text-green-600">
-                    ฿{caseData.finance.paid}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Outstanding</p>
-                  <p className="text-sm font-medium text-foreground">
-                    ฿{caseData.finance.outstanding}
-                  </p>
-                </div>
-              </div>
+          <CollapsibleSection
+            title="Finance"
+            icon={<DollarSign className="size-4" />}
+            open={expandedSections.finance}
+            onToggle={() => toggleSection("finance")}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <FinanceCard label="Total" value={caseData.finance.total} currency={caseData.finance.currency} />
+              <FinanceCard label="Partner Cost" value={caseData.finance.partnerCost} currency={caseData.finance.currency} />
+              <FinanceCard label="Paid" value={caseData.finance.paid} currency={caseData.finance.currency} variant="success" />
+              <FinanceCard label="Outstanding" value={caseData.finance.outstanding} currency={caseData.finance.currency} variant={parseFloat(caseData.finance.outstanding.replace(",", "")) > 0 ? "warning" : "default"} />
             </div>
-            <Button variant="outline" size="sm" className="mt-3">
+            <Button variant="outline" size="sm" className="mt-4">
               Record Payment
             </Button>
-          </DrawerSection>
+          </CollapsibleSection>
 
           {/* Quick Info Section */}
-          <DrawerSection title="Quick Info">
+          <CollapsibleSection
+            title="Quick Info"
+            icon={<Info className="size-4" />}
+            open={expandedSections.info}
+            onToggle={() => toggleSection("info")}
+          >
             <PropertyList>
               <PropertyRow label="Organization" value={caseData.organization} />
               <PropertyRow
                 label="Public Token"
                 value={
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
+                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
                       {caseData.publicToken}
                     </code>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -362,7 +450,7 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               <PropertyRow label="Created" value={caseData.createdAt} />
               <PropertyRow label="Updated" value={caseData.updatedAt} />
             </PropertyList>
-          </DrawerSection>
+          </CollapsibleSection>
         </div>
       </SheetContent>
     </Sheet>
@@ -370,40 +458,112 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
 }
 
 // Helper Components
-function DrawerSection({
-  title,
-  children,
-}: {
+interface CollapsibleSectionProps {
   title: string
+  icon: React.ReactNode
   children: React.ReactNode
-}) {
+  open: boolean
+  onToggle: () => void
+  badge?: number
+  highlight?: boolean
+}
+
+function CollapsibleSection({
+  title,
+  icon,
+  children,
+  open,
+  onToggle,
+  badge,
+  highlight,
+}: CollapsibleSectionProps) {
   return (
-    <section className="px-6 py-5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-        {title}
-      </p>
-      {children}
-    </section>
+    <Collapsible open={open} onOpenChange={onToggle}>
+      <div className={cn(
+        "border-b border-border",
+        highlight && "bg-indigo-50/50 dark:bg-indigo-950/20"
+      )}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-6 py-4 hover:bg-muted/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{icon}</span>
+            <span className="text-sm font-semibold text-foreground">{title}</span>
+            {badge !== undefined && badge > 0 && (
+              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                {badge}
+              </span>
+            )}
+          </div>
+          {open ? (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="size-4 text-muted-foreground" />
+          )}
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-6 pb-5">{children}</div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   )
 }
 
 function PropertyList({ children }: { children: React.ReactNode }) {
-  return <div className="divide-y divide-border">{children}</div>
+  return <div className="space-y-1">{children}</div>
 }
 
 function PropertyRow({
   label,
   value,
+  copyable,
 }: {
   label: string
   value: React.ReactNode
+  copyable?: boolean
 }) {
   return (
-    <div className="flex min-h-[36px] items-center gap-4 pl-0">
-      <span className="w-[140px] flex-shrink-0 text-sm text-muted-foreground">
+    <div className="flex min-h-[36px] items-center gap-4">
+      <span className="w-[120px] flex-shrink-0 text-sm text-muted-foreground">
         {label}
       </span>
-      <span className="text-sm text-foreground font-medium">{value}</span>
+      <span className="text-sm text-foreground font-medium flex items-center gap-1">
+        {value}
+        {copyable && typeof value === "string" && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 opacity-50 hover:opacity-100"
+            onClick={() => navigator.clipboard.writeText(value)}
+          >
+            <Copy className="size-3" />
+          </Button>
+        )}
+      </span>
+    </div>
+  )
+}
+
+function FinanceCard({
+  label,
+  value,
+  currency,
+  variant = "default",
+}: {
+  label: string
+  value: string
+  currency: string
+  variant?: "default" | "success" | "warning"
+}) {
+  return (
+    <div className="bg-muted/50 rounded-lg p-3 border border-border">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={cn(
+        "text-lg font-semibold mt-0.5",
+        variant === "success" && "text-green-600",
+        variant === "warning" && "text-amber-600",
+        variant === "default" && "text-foreground"
+      )}>
+        {currency === "THB" ? "฿" : "$"}{value}
+      </p>
     </div>
   )
 }
