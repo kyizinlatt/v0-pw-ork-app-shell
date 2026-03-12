@@ -20,6 +20,8 @@ import {
   Bell,
   BarChart3,
   FileStack,
+  Plus,
+  Receipt,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -81,6 +83,7 @@ const menuGroups: MenuGroup[] = [
     label: "Finance",
     permission: "FINANCE",
     items: [
+      { label: "Invoices", icon: Receipt, href: "/finance/invoices" },
       { label: "Payments", icon: Banknote, href: "/finance/payments" },
       { label: "Reports", icon: BarChart3, href: "/finance/reports" },
     ],
@@ -90,7 +93,7 @@ const menuGroups: MenuGroup[] = [
     permission: "SUPER_ADMIN",
     items: [
       { label: "Audit Log", icon: ShieldCheck, href: "/admin/audit" },
-      { label: "Notifications", icon: Bell, href: "/admin/notifications" },
+      { label: "Notifications", icon: Bell, href: "/notifications" },
     ],
   },
 ]
@@ -167,6 +170,22 @@ export function Sidebar({
             <X className="w-5 h-5" />
           </Button>
         )}
+      </div>
+
+      {/* Quick Case Button */}
+      <div className="px-2 pt-3 pb-1">
+        <Link
+          href="/?action=new"
+          onClick={onMobileClose}
+          className={cn(
+            "flex items-center justify-center gap-2 w-full rounded-lg py-2 text-sm font-medium transition-all",
+            "bg-white text-indigo-900 hover:bg-white/90 shadow-sm",
+            collapsed && "px-0"
+          )}
+        >
+          <Plus className="w-4 h-4" />
+          {!collapsed && <span>Quick Case</span>}
+        </Link>
       </div>
 
       {/* Nav Groups */}
