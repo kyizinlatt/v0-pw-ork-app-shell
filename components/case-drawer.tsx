@@ -183,10 +183,19 @@ const currentUser = {
 
 type Message = typeof sampleCase.messages[0]
 
+// Available users for mentions
+const mentionableUsers = [
+  { id: "pwin-1", name: "SRP Admin", type: "PWIN" },
+  { id: "partner-1", name: "Partner Admin A", type: "PARTNER" },
+  { id: "partner-2", name: "Partner Staff B", type: "PARTNER" },
+]
+
 export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
   const [messageText, setMessageText] = useState("")
   const [messages, setMessages] = useState<Message[]>(sampleCase.messages)
   const [replyTo, setReplyTo] = useState<Message | null>(null)
+  const [showMentions, setShowMentions] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -321,10 +330,42 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
       e.preventDefault()
       handleSendMessage()
     }
-    if (e.key === "Escape" && replyTo) {
-      e.preventDefault()
-      setReplyTo(null)
+    if (e.key === "Escape") {
+      if (showMentions) {
+        e.preventDefault()
+        setShowMentions(false)
+      } else if (replyTo) {
+        e.preventDefault()
+        setReplyTo(null)
+      }
     }
+  }
+
+  // Handle text input for mention detection
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    setMessageText(text)
+
+    // Detect @ mentions
+    const lastAt = text.lastIndexOf("@")
+    if (lastAt !== -1 && (lastAt === 0 || text[lastAt - 1] === " ")) {
+      const query = text.substring(lastAt + 1).toLowerCase()
+      setMentionQuery(query)
+      setShowMentions(true)
+    } else {
+      setShowMentions(false)
+    }
+  }
+
+  // Insert mention into message
+  const insertMention = (user: typeof mentionableUsers[0]) => {
+    const lastAt = messageText.lastIndexOf("@")
+    const beforeAt = messageText.substring(0, lastAt)
+    const afterMention = messageText.substring(messageText.indexOf(" ", lastAt) + 1 || messageText.length)
+    const newText = `${beforeAt}@${user.name} ${afterMention}`.trim() + " "
+    setMessageText(newText)
+    setShowMentions(false)
+    textareaRef.current?.focus()
   }
 
   // Auto-scroll to latest message
@@ -721,131 +762,78 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               }
             >
               {/* Message list */}
-              <div className="space-y-2 mb-3 max-h-72 overflow-y-auto px-0.5">
-                {messages.map((msg, idx) => {
-                  const showAvatar = idx === 0 || messages[idx - 1].sender !== msg.sender
+              <div className="space-y-3 mb-3 max-h-72 overflow-y-auto px-0.5">
+                {messages.map((msg) => {
                   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase()
                   const getAvatarColor = (type: string) =>
                     type === "PWIN" ? "bg-indigo-600" : "bg-amber-600"
 
                   return (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        "group flex gap-2 items-end",
-                        msg.isOwn ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      {/* Left avatar — for others' messages */}
-                      {!msg.isOwn && (
-                        <>
-                          {showAvatar && (
-                            <div
-                              className={cn(
-                                "size-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
-                                getAvatarColor(msg.senderType)
-                              )}
-                              title={`${msg.sender} (${msg.senderType})`}
-                            >
-                              {getInitials(msg.sender)}
-                            </div>
-                          )}
-                          {!showAvatar && <div className="size-7 shrink-0" />}
-                        </>
-                      )}
-
-                      {/* Message content */}
-                      <div className="flex flex-col gap-0.5 max-w-xs">
-                        {/* Sender label for non-own messages, first of group */}
-                        {!msg.isOwn && showAvatar && !msg.deleted && (
-                          <span className="text-[10px] font-medium text-muted-foreground px-1">
-                            {msg.sender}
-                          </span>
+                    <div key={msg.id} className="group flex gap-2.5 items-start">
+                      {/* Avatar — always on left */}
+                      <div
+                        className={cn(
+                          "size-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
+                          getAvatarColor(msg.senderType)
                         )}
-
-                        <div className={cn("flex items-end gap-1")}>
-                          {/* Action buttons — appear on hover */}
-                          {!msg.deleted && (
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => setReplyTo(msg)}
-                                className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                                title="Reply"
-                              >
-                                <Reply className="size-3" />
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Bubble */}
-                          {msg.deleted ? (
-                            <div className="px-3 py-1.5 rounded-lg bg-muted/40 border border-dashed border-border">
-                              <span className="text-xs text-muted-foreground italic">This message was deleted</span>
-                            </div>
-                          ) : (
-                            <div
-                              className={cn(
-                                "px-3.5 py-2 text-sm leading-snug",
-                                msg.isOwn
-                                  ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
-                                  : "bg-muted text-foreground rounded-2xl rounded-bl-sm"
-                              )}
-                            >
-                              {/* Reply-to preview */}
-                              {msg.replyTo && (
-                                <div className={cn(
-                                  "flex items-start gap-1.5 mb-2 px-2 py-1.5 rounded-md text-xs",
-                                  msg.isOwn
-                                    ? "bg-white/20 text-white/90"
-                                    : "bg-background/70 text-muted-foreground"
-                                )}>
-                                  <CornerUpLeft className="size-3 shrink-0 mt-0.5" />
-                                  <div className="min-w-0">
-                                    <span className="font-medium block truncate">{msg.replyTo.sender}</span>
-                                    <span className="truncate block opacity-80">{msg.replyTo.content}</span>
-                                  </div>
-                                </div>
-                              )}
-                              {msg.content}
-                              <span className={cn(
-                                "block text-[10px] mt-1 text-right",
-                                msg.isOwn ? "text-white/60" : "text-muted-foreground"
-                              )}>
-                                {msg.time}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Delete button — own messages only, right of bubble */}
-                          {msg.isOwn && !msg.deleted && (
-                            <button
-                              onClick={() => handleDeleteMessage(msg.id)}
-                              className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors opacity-0 group-hover:opacity-100"
-                              title="Delete"
-                            >
-                              <Trash2 className="size-3" />
-                            </button>
-                          )}
-                        </div>
+                        title={`${msg.sender} (${msg.senderType})`}
+                      >
+                        {getInitials(msg.sender)}
                       </div>
 
-                      {/* Right avatar — for own messages */}
-                      {msg.isOwn && (
-                        <>
-                          {showAvatar && (
-                            <div
-                              className={cn(
-                                "size-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0",
-                                getAvatarColor(msg.senderType)
-                              )}
-                              title={`${msg.sender} (${msg.senderType})`}
-                            >
-                              {getInitials(msg.sender)}
+                      {/* Message content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Header: Sender + time */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium text-foreground">{msg.sender}</span>
+                          <span className="text-xs text-muted-foreground">{msg.time}</span>
+                        </div>
+
+                        {/* Bubble */}
+                        {msg.deleted ? (
+                          <div className="px-3 py-2 rounded-lg bg-muted/40 border border-dashed border-border inline-block">
+                            <span className="text-sm text-muted-foreground italic">This message was deleted</span>
+                          </div>
+                        ) : (
+                          <>
+                            {/* Reply-to preview */}
+                            {msg.replyTo && (
+                              <div className="flex items-start gap-1.5 mb-1.5 px-2.5 py-1.5 rounded-md bg-muted/50 border-l-2 border-indigo-400 text-xs max-w-sm">
+                                <CornerUpLeft className="size-3 shrink-0 mt-0.5 text-muted-foreground" />
+                                <div className="min-w-0">
+                                  <span className="font-medium text-foreground block truncate">{msg.replyTo.sender}</span>
+                                  <span className="truncate block text-muted-foreground">{msg.replyTo.content}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="px-3.5 py-2.5 bg-muted text-foreground rounded-xl rounded-tl-sm text-sm leading-relaxed max-w-sm">
+                              {msg.content}
                             </div>
-                          )}
-                          {!showAvatar && <div className="size-7 shrink-0" />}
-                        </>
-                      )}
+                          </>
+                        )}
+
+                        {/* Action buttons — below bubble, appear on hover */}
+                        {!msg.deleted && (
+                          <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setReplyTo(msg)}
+                              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              title="Reply"
+                            >
+                              <Reply className="size-3.5" />
+                            </button>
+                            {msg.isOwn && (
+                              <button
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -872,12 +860,35 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
                 )}
                 <Textarea
                   ref={textareaRef}
-                  placeholder="Type a message... (Ctrl+Enter to send)"
+                  placeholder="Type a message... (Ctrl+Enter to send, @ to mention)"
                   value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
+                  onChange={handleTextChange}
                   onKeyDown={handleKeyDown}
                   className="min-h-[64px] border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none text-sm rounded-none bg-transparent px-3 pt-2.5 pb-1"
                 />
+                {/* Mention dropdown */}
+                {showMentions && (
+                  <div className="border-t border-border bg-muted/40 max-h-32 overflow-y-auto">
+                    {mentionableUsers
+                      .filter((u) => u.name.toLowerCase().includes(mentionQuery))
+                      .map((user) => (
+                        <button
+                          key={user.id}
+                          onClick={() => insertMention(user)}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                        >
+                          <div className={cn(
+                            "size-5 rounded-full flex items-center justify-center text-[9px] font-semibold text-white",
+                            user.type === "PWIN" ? "bg-indigo-600" : "bg-amber-600"
+                          )}>
+                            {user.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                          </div>
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{user.type}</span>
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
                   <span className="text-[10px] text-muted-foreground">
                     {messageText.length > 0 ? `${messageText.length} chars` : "Ctrl+Enter to send"}
@@ -1024,6 +1035,11 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("info")}
             >
               <PropertyList>
+                <PropertyRow label="Case ID" value={<span className="font-mono text-xs">{caseData.caseNumber}</span>} />
+                <PropertyRow label="Branch" value={caseData.branch || "HQ - Head Office"} />
+                <PropertyRow label="Service" value={`${caseData.service.code} - ${caseData.service.name}`} />
+                <PropertyRow label="Status" value={<StatusBadge status={caseData.status} size="sm" />} />
+                <PropertyRow label="SLA" value={`${caseData.slaRemaining} of ${caseData.slaTotalDays} days`} />
                 <PropertyRow label="Organization" value={caseData.organization} />
                 <PropertyRow label="Public" value={caseData.isPublic ? "Yes" : "No"} />
                 {caseData.isPublic && (
