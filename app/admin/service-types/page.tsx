@@ -23,9 +23,16 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { BTN, FORM_LABELS, FORM_PLACEHOLDERS, EMPTY_STATE } from "@/lib/constants"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Clock, DollarSign, FileText } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Clock, DollarSign, FileText, ImageIcon, X } from "lucide-react"
 
 type ServiceStatus = "ACTIVE" | "INACTIVE"
+type DocType = "image" | "pdf" | "both"
+
+interface RequiredDocument {
+  id: string
+  name: string
+  type: DocType
+}
 
 interface ServiceType {
   id: string
@@ -38,18 +45,20 @@ interface ServiceType {
   status: ServiceStatus
   casesCount: number
   createdAt: string
+  requiredDocuments: RequiredDocument[]
 }
 
 const INITIAL_SERVICES: ServiceType[] = [
-  { id: "1", code: "KS", name: "Kyant Sal", description: "Standard visa processing service", slaDays: 14, price: 3500, requiresPartner: true, status: "ACTIVE", casesCount: 342, createdAt: "Jan 2024" },
-  { id: "2", code: "WP", name: "Work Permit", description: "Work permit application and renewal", slaDays: 21, price: 5000, requiresPartner: true, status: "ACTIVE", casesCount: 178, createdAt: "Jan 2024" },
-  { id: "3", code: "90D", name: "90-Day Report", description: "90-day stay reporting", slaDays: 7, price: 800, requiresPartner: false, status: "ACTIVE", casesCount: 521, createdAt: "Feb 2024" },
-  { id: "4", code: "VISA", name: "Tourist Visa", description: "Tourist visa extension", slaDays: 5, price: 1200, requiresPartner: false, status: "ACTIVE", casesCount: 93, createdAt: "Mar 2024" },
-  { id: "5", code: "TM30", name: "TM30 Filing", description: "TM30 landlord notification filing", slaDays: 3, price: 500, requiresPartner: false, status: "INACTIVE", casesCount: 12, createdAt: "Jun 2024" },
+  { id: "1", code: "KS", name: "Kyant Sal", description: "Standard visa processing service", slaDays: 14, price: 3500, requiresPartner: true, status: "ACTIVE", casesCount: 342, createdAt: "Jan 2024", requiredDocuments: [{ id: "d1", name: "Passport Copy", type: "image" }, { id: "d2", name: "TM6 Card", type: "image" }, { id: "d3", name: "Application Form", type: "pdf" }] },
+  { id: "2", code: "WP", name: "Work Permit", description: "Work permit application and renewal", slaDays: 21, price: 5000, requiresPartner: true, status: "ACTIVE", casesCount: 178, createdAt: "Jan 2024", requiredDocuments: [{ id: "d4", name: "Passport Photo", type: "image" }, { id: "d5", name: "Employment Contract", type: "pdf" }] },
+  { id: "3", code: "90D", name: "90-Day Report", description: "90-day stay reporting", slaDays: 7, price: 800, requiresPartner: false, status: "ACTIVE", casesCount: 521, createdAt: "Feb 2024", requiredDocuments: [{ id: "d6", name: "Passport Copy", type: "image" }] },
+  { id: "4", code: "VISA", name: "Tourist Visa", description: "Tourist visa extension", slaDays: 5, price: 1200, requiresPartner: false, status: "ACTIVE", casesCount: 93, createdAt: "Mar 2024", requiredDocuments: [] },
+  { id: "5", code: "TM30", name: "TM30 Filing", description: "TM30 landlord notification filing", slaDays: 3, price: 500, requiresPartner: false, status: "INACTIVE", casesCount: 12, createdAt: "Jun 2024", requiredDocuments: [] },
 ]
 
 const emptyForm = {
   code: "", name: "", description: "", slaDays: 14, price: 0, requiresPartner: false, status: "ACTIVE" as ServiceStatus,
+  requiredDocuments: [] as RequiredDocument[],
 }
 
 export default function ServiceTypesPage() {
@@ -83,8 +92,27 @@ export default function ServiceTypesPage() {
       code: service.code, name: service.name, description: service.description,
       slaDays: service.slaDays, price: service.price,
       requiresPartner: service.requiresPartner, status: service.status,
+      requiredDocuments: service.requiredDocuments,
     })
     setDialogOpen(true)
+  }
+
+  function addDocument() {
+    setForm((f) => ({
+      ...f,
+      requiredDocuments: [...f.requiredDocuments, { id: `d-${Date.now()}`, name: "", type: "image" as DocType }],
+    }))
+  }
+
+  function updateDocument(id: string, field: keyof RequiredDocument, value: string) {
+    setForm((f) => ({
+      ...f,
+      requiredDocuments: f.requiredDocuments.map((d) => d.id === id ? { ...d, [field]: value } : d),
+    }))
+  }
+
+  function removeDocument(id: string) {
+    setForm((f) => ({ ...f, requiredDocuments: f.requiredDocuments.filter((d) => d.id !== id) }))
   }
 
   function openDelete(service: ServiceType) {
@@ -223,6 +251,12 @@ export default function ServiceTypesPage() {
                           <FileText className="size-3.5" />
                           <span>{service.casesCount} cases</span>
                         </div>
+                        {service.requiredDocuments.length > 0 && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <ImageIcon className="size-3.5" />
+                            <span>{service.requiredDocuments.length} docs</span>
+                          </div>
+                        )}
                         {service.requiresPartner && (
                           <span className="ml-auto text-xs text-indigo-600 dark:text-indigo-400 font-medium">+ Partner</span>
                         )}
@@ -237,7 +271,7 @@ export default function ServiceTypesPage() {
 
         {/* Create / Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingService ? "Edit Service Type" : "Add Service Type"}</DialogTitle>
             </DialogHeader>
@@ -281,6 +315,66 @@ export default function ServiceTypesPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Required Documents - full width */}
+              <div className="col-span-2 space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label>Required Documents</Label>
+                  <button
+                    type="button"
+                    onClick={addDocument}
+                    className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                  >
+                    <Plus className="size-3.5" />
+                    Add Document
+                  </button>
+                </div>
+
+                {form.requiredDocuments.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2 text-center border border-dashed border-border rounded-md">
+                    No required documents. Click "Add Document" to add one.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {form.requiredDocuments.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-2">
+                        <Input
+                          value={doc.name}
+                          onChange={(e) => updateDocument(doc.id, "name", e.target.value)}
+                          placeholder="e.g. Passport Copy"
+                          className="flex-1 h-8 text-sm"
+                        />
+                        {/* File type toggle: image / pdf / both */}
+                        <div className="flex items-center border border-border rounded-md overflow-hidden shrink-0">
+                          {(["image", "pdf", "both"] as DocType[]).map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => updateDocument(doc.id, "type", t)}
+                              className={cn(
+                                "h-8 px-2.5 text-xs font-medium transition-all",
+                                doc.type === t
+                                  ? "bg-indigo-600 text-white"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              {t === "image" ? "Image" : t === "pdf" ? "PDF" : "Both"}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeDocument(doc.id)}
+                          className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">Accepted formats: Images (JPG, PNG, WEBP) and PDF only.</p>
               </div>
             </div>
             <DialogFooter>
