@@ -753,17 +753,34 @@ export function CaseDrawer({ open, onOpenChange }: CaseDrawerProps) {
               onToggle={() => toggleSection("timeline")}
               badge={caseData.timeline.length}
             >
-              <div className="relative border-l border-border ml-1.5 pl-4 space-y-3">
+              <div className="relative space-y-0">
                 {caseData.timeline.map((event, i) => (
-                  <div key={event.id} className="relative">
+                  <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
+                    {/* Vertical line */}
+                    {i < caseData.timeline.length - 1 && (
+                      <div className="absolute left-[9px] top-5 bottom-0 w-px bg-border" />
+                    )}
+                    {/* Dot */}
                     <div className={cn(
-                      "absolute -left-[17px] top-1 w-2 h-2 rounded-full",
-                      event.type === "status" ? "bg-indigo-500" : "bg-muted-foreground"
-                    )} />
-                    <p className="text-sm text-foreground leading-snug">{event.action}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {event.actor} - {event.time}
-                    </p>
+                      "relative z-10 mt-0.5 shrink-0 size-[18px] rounded-full flex items-center justify-center",
+                      event.type === "status" 
+                        ? "bg-indigo-100 dark:bg-indigo-950" 
+                        : "bg-muted"
+                    )}>
+                      <div className={cn(
+                        "size-2 rounded-full",
+                        event.type === "status" 
+                          ? "bg-indigo-500" 
+                          : "bg-muted-foreground/50"
+                      )} />
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground leading-snug">{event.action}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {event.actor} - {event.time}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
